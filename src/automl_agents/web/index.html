@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Construya su clasificador de imágenes</title>
+<style>
+  :root {
+    --bg:#e6eae7; --paper:#f8faf8; --ink:#16231f; --muted:#52625c; --line:#c3ccc7;
+    --signal:#f0b90b; --signal-ink:#2a2000; --steel:#2f5d7c; --ok:#1f7a4d; --bad:#b3261e;
+    --font: "Segoe UI", "Helvetica Neue", Arial, system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#141b19; --paper:#1c2522; --ink:#e7eeea; --muted:#9fb0a8; --line:#33423d; --steel:#7fb3d6; --ok:#5ec08f; --bad:#ff8a80; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.55 var(--font); }
+  main { max-width: 860px; margin: 0 auto; padding: 40px 20px 80px; }
+  h1 { font-size: clamp(1.9rem, 4.5vw, 2.8rem); line-height:1.1; margin:0 0 12px; letter-spacing:-0.02em; font-weight:800; }
+  .lead { max-width: 60ch; color:var(--muted); margin:0 0 32px; }
+  form, .panel { background:var(--paper); border:1px solid var(--line); border-radius:6px; padding:24px; margin-bottom:24px; }
+  label { display:block; font-weight:600; margin: 18px 0 6px; }
+  label:first-of-type { margin-top:0; }
+  .hint { color:var(--muted); font-weight:400; font-size:.9rem; display:block; }
+  input[type=file], textarea, select { width:100%; padding:10px; border:1px solid var(--line); border-radius:4px; background:var(--bg); color:var(--ink); font:inherit; }
+  textarea { min-height: 84px; resize: vertical; }
+  button { margin-top:22px; padding:12px 22px; border:0; border-radius:4px; background:var(--signal); color:var(--signal-ink); font:inherit; font-weight:700; cursor:pointer; }
+  button:disabled { opacity:.5; cursor:progress; }
+  :focus-visible { outline:3px solid var(--steel); outline-offset:2px; }
+  .err { color:var(--bad); margin-top:14px; font-weight:600; }
+  ol.steps { list-style:none; padding:0; margin:0 0 18px; display:grid; gap:8px; }
+  ol.steps li { display:flex; gap:12px; align-items:center; color:var(--muted); }
+  ol.steps li::before { content:""; width:14px; height:14px; border-radius:50%; border:2px solid var(--line); flex:none; }
+  ol.steps li.now { color:var(--ink); font-weight:700; }
+  ol.steps li.now::before { border-color:var(--signal); background:var(--signal); }
+  ol.steps li.done::before { border-color:var(--ok); background:var(--ok); }
+  #log { font-size:.9rem; color:var(--muted); max-height:180px; overflow:auto; border-top:1px solid var(--line); padding-top:12px; margin:0; list-style:none; }
+  .kpi { font-size: clamp(2.4rem, 8vw, 4rem); font-weight:800; line-height:1; letter-spacing:-0.03em; }
+  .row { display:flex; gap:16px; flex-wrap:wrap; margin-top:16px; }
+  a.btn { display:inline-block; padding:10px 18px; border-radius:4px; border:2px solid var(--steel); color:var(--steel); font-weight:700; text-decoration:none; }
+  a.btn.main { background:var(--steel); color:#fff; }
+  pre { white-space:pre-wrap; background:var(--bg); padding:16px; border-radius:4px; font:inherit; font-size:.95rem; }
+  [hidden] { display:none !important; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Construya su clasificador de imágenes sin programar</h1>
+  <p class="lead">Suba sus fotos ya ordenadas por categoría. El sistema prueba varios modelos, elige el mejor y le entrega una API lista para usar, con un reporte que explica cada decisión.</p>
+
+  <form id="form">
+    <label for="file">Su dataset en formato ZIP
+      <span class="hint">Una carpeta por categoría, con las fotos dentro. Ejemplo: defectuoso/, correcto/.</span></label>
+    <input id="file" name="file" type="file" accept=".zip" required>
+
+    <label for="use_case">¿Para qué usará el clasificador?
+      <span class="hint">Una frase basta. Si sus fotos incluyen personas, menciónelo: le avisaremos qué cuidar.</span></label>
+    <textarea id="use_case" name="use_case" maxlength="1000" placeholder="Separar piezas defectuosas en la línea de empaque"></textarea>
+
+    <label for="budget">¿Cuánto tiempo puede esperar?</label>
+    <select id="budget" name="budget">
+      <option value="rapido">Rápido: menos pruebas, resultado más aproximado</option>
+      <option value="estandar" selected>Equilibrado</option>
+      <option value="exhaustivo">Exhaustivo: más pruebas, tarda más</option>
+    </select>
+
+    <label for="tier">¿Con qué computadora se entrenará?</label>
+    <select id="tier" name="tier">
+      <option value="low" selected>Equipo modesto o GPU de 4 GB</option>
+      <option value="medium">GPU de 8 GB o más</option>
+      <option value="high">GPU potente o nube</option>
+    </select>
+
+    <button id="go" type="submit">Crear mi clasificador</button>
+    <div id="err" class="err" role="alert" hidden></div>
+  </form>
+
+  <section id="progress" class="panel" hidden aria-live="polite">
+    <ol class="steps" id="steps"></ol>
+    <ul id="log"></ul>
+  </section>
+
+  <section id="result" class="panel" hidden>
+    <div class="kpi" id="acc"></div>
+    <p id="acc-note" style="color:var(--muted);margin:6px 0 0"></p>
+    <div class="row">
+      <a class="btn main" id="dl" href="#">Descargar modelo y reportes</a>
+      <a class="btn" id="rep" href="#" target="_blank" rel="noopener">Ver reporte completo</a>
+    </div>
+    <pre id="report" hidden></pre>
+  </section>
+</main>
+<script>
+const STAGES = [
+  ["perfil","Revisando sus imágenes"], ["rag","Consultando buenas prácticas"],
+  ["candidatas","Eligiendo los modelos a probar"], ["train","Entrenando y comparando"],
+  ["evaluacion","Evaluando con imágenes nuevas"], ["reportes","Escribiendo los reportes"], ["listo","Modelo listo"]
+];
+const $ = id => document.getElementById(id);
+let timer = null;
+
+function renderSteps(events) {
+  const seen = new Set(events.map(e => e.stage === "control" ? "train" : e.stage));
+  let last = -1; STAGES.forEach(([k], i) => { if (seen.has(k)) last = i; });
+  $("steps").innerHTML = STAGES.map(([k, t], i) =>
+    `<li class="${i < last || (i === last && k === "listo") ? "done" : i === last ? "now" : ""}">${t}</li>`).join("");
+  $("log").innerHTML = events.slice(-8).reverse().map(e => `<li>${e.message.replace(/</g, "&lt;")}</li>`).join("");
+}
+
+async function poll(id) {
+  const r = await fetch(`/api/runs/${id}`); const d = await r.json();
+  renderSteps(d.events || []);
+  if (d.status === "done") {
+    clearInterval(timer);
+    const s = d.summary, acc = (s.test.accuracy * 100).toFixed(0);
+    $("acc").textContent = `${acc} % de aciertos`;
+    $("acc-note").textContent = `Modelo elegido: ${s.winner.architecture}. Medido con ${s.test.n_test} imágenes que no vio al entrenar.`;
+    $("dl").href = `/api/runs/${id}/download`; $("rep").href = `/api/runs/${id}/report`;
+    $("result").hidden = false; $("go").disabled = false;
+  } else if (d.status === "error") {
+    clearInterval(timer); $("go").disabled = false;
+    $("err").textContent = d.message || "La ejecución falló."; $("err").hidden = false;
+  }
+}
+
+$("form").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  $("err").hidden = true; $("result").hidden = true; $("go").disabled = true;
+  const res = await fetch("/api/runs", { method: "POST", body: new FormData($("form")) });
+  const d = await res.json();
+  if (!res.ok) { $("err").textContent = d.detail || "No se pudo cargar el dataset."; $("err").hidden = false; $("go").disabled = false; return; }
+  $("progress").hidden = false; renderSteps([]);
+  timer = setInterval(() => poll(d.run_id), 3000); poll(d.run_id);
+});
+</script>
+</body>
+</html>

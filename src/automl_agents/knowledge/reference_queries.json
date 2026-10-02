@@ -1,0 +1,12 @@
+[
+  {"query": "dataset con muy pocas imágenes por clase", "relevant": ["guide_small_dataset", "guide_transfer_learning", "guide_data_augmentation"]},
+  {"query": "qué hacer cuando una clase tiene muchos más ejemplos que otra", "relevant": ["guide_class_imbalance", "guide_metrics"]},
+  {"query": "tamaño de lote para GPU de 4 GB de memoria", "relevant": ["guide_batch_size", "guide_limited_resources"]},
+  {"query": "rango de tasa de aprendizaje para entrenar la cabeza con backbone congelado", "relevant": ["guide_learning_rate", "guide_transfer_learning"]},
+  {"query": "modelo muy grande con demasiados parámetros no recomendado para pymes", "relevant": ["arch_vgg16", "guide_limited_resources"]},
+  {"query": "detener configuraciones malas temprano para ahorrar cómputo", "relevant": ["guide_early_stopping", "guide_limited_resources"]},
+  {"query": "arquitectura más ligera para dispositivos móviles con latencia mínima", "relevant": ["arch_mobilenetv3small", "arch_mobilenetv2"]},
+  {"query": "muchas imágenes de entrenamiento, modelo de mayor capacidad", "relevant": ["guide_large_dataset", "arch_resnet50v2", "arch_convnexttiny"]},
+  {"query": "resolución 299 de entrada más costosa", "relevant": ["arch_xception", "arch_inceptionv3", "guide_input_resolution"]},
+  {"query": "qué métricas usar para evaluar el modelo y conjunto de prueba", "relevant": ["guide_metrics", "guide_class_imbalance"]}
+]

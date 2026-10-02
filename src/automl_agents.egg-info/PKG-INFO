@@ -1,0 +1,22 @@
+Metadata-Version: 2.4
+Name: automl-agents
+Version: 0.1.0
+Summary: Arquitectura multiagente + RAG para automatizar la selección, entrenamiento y empaquetado de modelos de clasificación de imágenes (tesis PUCP)
+Requires-Python: >=3.10
+Requires-Dist: tensorflow-cpu>=2.16; sys_platform != "win32" and platform_machine != "x86_64_gpu"
+Requires-Dist: optuna>=3.6
+Requires-Dist: chromadb>=0.5
+Requires-Dist: langgraph>=0.2
+Requires-Dist: scikit-learn>=1.4
+Requires-Dist: psutil>=5.9
+Requires-Dist: pillow>=10
+Requires-Dist: numpy>=1.26
+Requires-Dist: fastapi>=0.110
+Requires-Dist: uvicorn>=0.29
+Requires-Dist: python-multipart>=0.0.9
+Requires-Dist: anthropic>=0.40
+Provides-Extra: embeddings
+Requires-Dist: sentence-transformers>=3.0; extra == "embeddings"
+Provides-Extra: dev
+Requires-Dist: pytest>=8; extra == "dev"
+Requires-Dist: httpx>=0.27; extra == "dev"
