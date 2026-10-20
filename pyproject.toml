@@ -8,7 +8,8 @@ version = "0.1.0"
 description = "Arquitectura multiagente + RAG para automatizar la selección, entrenamiento y empaquetado de modelos de clasificación de imágenes (tesis PUCP)"
 requires-python = ">=3.10"
 dependencies = [
-  "tensorflow-cpu>=2.16; sys_platform != 'win32' and platform_machine != 'x86_64_gpu'",
+  "tensorflow-cpu>=2.16",
+  "keras>=3.0",
   "optuna>=3.6",
   "chromadb>=0.5",
   "langgraph>=0.2",
@@ -19,7 +20,8 @@ dependencies = [
   "fastapi>=0.110",
   "uvicorn>=0.29",
   "python-multipart>=0.0.9",
-  "anthropic>=0.40",
+  "google-genai>=1.0",
+  "python-dotenv>=1.0",
 ]
 
 [project.optional-dependencies]

@@ -6,6 +6,10 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
 
+from dotenv import load_dotenv
+
+load_dotenv()  # carga variables desde .env (si existe) hacia os.environ, sin sobrescribir las ya definidas
+
 
 def _default_run_id() -> str:
     return datetime.now().strftime("%Y%m%d-%H%M%S-") + uuid.uuid4().hex[:4]
@@ -32,7 +36,7 @@ class RunConfig:
     seed: int = 42
     embedding_backend: str = field(default_factory=lambda: os.getenv("AUTOML_EMBEDDING", "auto"))
     kb_persist_dir: str | None = None
-    llm_model: str = field(default_factory=lambda: os.getenv("AUTOML_LLM_MODEL", "claude-sonnet-5"))
+    llm_model: str = field(default_factory=lambda: os.getenv("AUTOML_LLM_MODEL", "gemini-3.8-flash"))
     use_llm: bool = True
 
     @property

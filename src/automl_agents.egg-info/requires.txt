@@ -1,3 +1,5 @@
+tensorflow-cpu>=2.16
+keras>=3.0
 optuna>=3.6
 chromadb>=0.5
 langgraph>=0.2
@@ -8,10 +10,8 @@ numpy>=1.26
 fastapi>=0.110
 uvicorn>=0.29
 python-multipart>=0.0.9
-anthropic>=0.40
-
-[:sys_platform != "win32" and platform_machine != "x86_64_gpu"]
-tensorflow-cpu>=2.16
+google-genai>=1.0
+python-dotenv>=1.0
 
 [dev]
 pytest>=8

@@ -155,7 +155,7 @@ def propose(profile, docs, cfg, llm: LLM | None) -> dict:
             cands, discarded = propose_llm(profile, docs, cfg, llm)
             mode = "llm"
         except Exception as e:  # cae a reglas: la ejecución nunca depende del LLM
-            note = f"Fallo del LLM ({type(e).__name__}); se usó el generador por reglas."
+            note = f"Fallo del LLM ({type(e).__name__}: {str(e)[:300]}); se usó el generador por reglas."
             cands, discarded = propose_rules(profile, docs, cfg)
     else:
         cands, discarded = propose_rules(profile, docs, cfg)

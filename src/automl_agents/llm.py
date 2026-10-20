@@ -1,4 +1,4 @@
-"""Cliente LLM opcional (Anthropic). Sin clave API el sistema funciona en modo "reglas"."""
+"""Cliente LLM opcional (Gemini, SDK google-genai). Sin clave API el sistema funciona en modo "reglas"."""
 from __future__ import annotations
 
 import json
@@ -8,14 +8,17 @@ import re
 
 class LLM:
     def __init__(self, model: str, enabled: bool = True):
-        self.model = model
+        self.model_name = model.removeprefix("models/")  # acepta "models/gemini-..." o "gemini-..."
         self.client = None
-        key = os.getenv("ANTHROPIC_API_KEY")
+        self._types = None
+        key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
         if enabled and key:
             try:
-                import anthropic
+                from google import genai
+                from google.genai import types
 
-                self.client = anthropic.Anthropic(api_key=key)
+                self.client = genai.Client(api_key=key)
+                self._types = types
             except Exception:
                 self.client = None
 
@@ -23,18 +26,37 @@ class LLM:
     def available(self) -> bool:
         return self.client is not None
 
-    def complete(self, system: str, user: str, max_tokens: int = 1500) -> str:
+    def _generate(self, system: str, user: str, max_tokens: int, json_mode: bool = False) -> str:
         if not self.client:
             raise RuntimeError("LLM no disponible")
-        r = self.client.messages.create(
-            model=self.model, max_tokens=max_tokens, system=system,
-            messages=[{"role": "user", "content": user}],
+        t = self._types
+        cfg = {"system_instruction": system, "max_output_tokens": max_tokens, "temperature": 0.2}
+        if json_mode:
+            cfg["response_mime_type"] = "application/json"
+        if "2.5-flash" in self.model_name:
+            # Sin esto, los "tokens de pensamiento" consumen el presupuesto de salida
+            # y la respuesta puede quedar vacía o cortada a mitad del JSON.
+            cfg["thinking_config"] = t.ThinkingConfig(thinking_budget=0)
+        resp = self.client.models.generate_content(
+            model=self.model_name, contents=user, config=t.GenerateContentConfig(**cfg)
         )
-        return "".join(b.text for b in r.content if getattr(b, "type", "") == "text")
+        text = resp.text
+        if not text:
+            cands = getattr(resp, "candidates", None) or []
+            reason = getattr(cands[0], "finish_reason", None) if cands else None
+            block = getattr(getattr(resp, "prompt_feedback", None), "block_reason", None)
+            raise RuntimeError(f"Respuesta vacía de Gemini (finish_reason={reason}, block_reason={block})")
+        return text
+
+    def complete(self, system: str, user: str, max_tokens: int = 1500) -> str:
+        return self._generate(system, user, max_tokens)
 
     def complete_json(self, system: str, user: str, max_tokens: int = 2000) -> dict:
-        raw = self.complete(system + "\nResponde SOLO con JSON válido, sin texto adicional.", user, max_tokens)
-        m = re.search(r"\{.*\}", raw, re.S)
-        if not m:
-            raise ValueError("La respuesta del LLM no contiene JSON")
-        return json.loads(m.group(0))
+        raw = self._generate(system, user, max_tokens, json_mode=True)
+        try:
+            return json.loads(raw)
+        except json.JSONDecodeError:
+            m = re.search(r"\{.*\}", raw, re.S)  # respaldo si el modelo agrega texto alrededor
+            if not m:
+                raise ValueError("La respuesta del LLM no contiene JSON")
+            return json.loads(m.group(0))

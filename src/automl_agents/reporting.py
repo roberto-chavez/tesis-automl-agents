@@ -5,6 +5,7 @@ import csv
 import json
 import math
 from pathlib import Path
+import logging
 
 from .catalog import CATALOG
 from .llm import LLM
@@ -117,8 +118,8 @@ def _plain_summary(facts: dict, llm: LLM | None) -> str:
                 "Redactas para dueños de pymes sin conocimientos de IA. Español claro, 3-4 oraciones, sin jerga. "
                 "Usa SOLO los datos dados; no inventes cifras.", str(facts), 400)
             return txt.strip()
-        except Exception:
-            pass
+        except Exception as e:
+            logging.getLogger("automl_agents").warning("Resumen con LLM falló (%s); se usa plantilla", e)
     return template
 
 

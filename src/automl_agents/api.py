@@ -151,4 +151,4 @@ def download(run_id: str):
 
 @app.get("/", response_class=HTMLResponse)
 def index():
-    return (Path(__file__).parent / "web" / "index.html").read_text("utf-8")
+    return (Path(__file__).parent / "web" / "index4.html").read_text("utf-8")
