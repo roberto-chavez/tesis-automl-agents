@@ -2,22 +2,31 @@
 from __future__ import annotations
 
 import json
+import math
 import os
 import re
 
+DEFAULT_LLM_TIMEOUT_SECONDS = 240.0
+
 
 class LLM:
-    def __init__(self, model: str, enabled: bool = True):
+    def __init__(self, model: str, enabled: bool = True, *,
+                 timeout_seconds: float = DEFAULT_LLM_TIMEOUT_SECONDS):
+        self.configure_timeout(timeout_seconds)
         self.model_name = model.removeprefix("models/")  # acepta "models/gemini-..." o "gemini-..."
         self.client = None
         self._types = None
+        self.last_usage = None
+        self.context_budget = None
         key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
         if enabled and key:
             try:
                 from google import genai
                 from google.genai import types
 
-                self.client = genai.Client(api_key=key)
+                self.client = genai.Client(api_key=key, http_options=types.HttpOptions(
+                    timeout=math.ceil(self.timeout_seconds * 1000),
+                    retry_options=types.HttpRetryOptions(attempts=1)))
                 self._types = types
             except Exception:
                 self.client = None
@@ -26,11 +35,29 @@ class LLM:
     def available(self) -> bool:
         return self.client is not None
 
+    def configure_timeout(self, seconds: float):
+        if not math.isfinite(seconds) or seconds <= 0:
+            raise ValueError("El timeout LLM debe ser positivo y finito")
+        self.timeout_seconds = float(seconds)
+
+    def configure_context_budget(self, budget):
+        self.context_budget = budget
+
     def _generate(self, system: str, user: str, max_tokens: int, json_mode: bool = False) -> str:
         if not self.client:
             raise RuntimeError("LLM no disponible")
+        self.last_usage = None
+        if self.context_budget is not None:
+            from .context import token_count
+            tokens, _ = token_count(system + user, getattr(self, "tokenizer", None))
+            max_tokens = min(max_tokens, self.context_budget.output_tokens)
+            if (tokens > self.context_budget.input_tokens or
+                    tokens + max_tokens > self.context_budget.window_tokens):
+                raise ValueError("El prompt excede el presupuesto de contexto")
         t = self._types
-        cfg = {"system_instruction": system, "max_output_tokens": max_tokens, "temperature": 0.2}
+        cfg = {"system_instruction": system, "max_output_tokens": max_tokens, "temperature": 0.2,
+               "http_options": t.HttpOptions(timeout=math.ceil(self.timeout_seconds * 1000),
+                                              retry_options=t.HttpRetryOptions(attempts=1))}
         if json_mode:
             cfg["response_mime_type"] = "application/json"
         if "2.5-flash" in self.model_name:
@@ -40,6 +67,8 @@ class LLM:
         resp = self.client.models.generate_content(
             model=self.model_name, contents=user, config=t.GenerateContentConfig(**cfg)
         )
+        usage = getattr(resp, "usage_metadata", None)
+        self.last_usage = usage.model_dump(mode="json") if usage is not None else None
         text = resp.text
         if not text:
             cands = getattr(resp, "candidates", None) or []

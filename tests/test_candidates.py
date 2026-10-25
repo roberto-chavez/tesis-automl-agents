@@ -43,3 +43,14 @@ def test_llm_output_is_validated_against_catalog():
 def test_llm_failure_falls_back_to_rules():
     r = propose(_profile(), [], RunConfig(dataset_dir="x"), FakeLLM(boom=True))
     assert r["mode"] == "reglas" and "Fallo del LLM" in r["note"]
+    assert r["error"] == {"code": "candidate_proposal_failed", "message": "sin red", "recoverable": True}
+
+
+def test_rules_and_no_llm_never_call_injected_client():
+    class ForbiddenLLM:
+        @property
+        def available(self):
+            raise AssertionError("El cliente no debe consultarse")
+
+    for cfg in (RunConfig(dataset_dir="x", mode="rules"), RunConfig(dataset_dir="x", use_llm=False)):
+        assert propose(_profile(), [], cfg, ForbiddenLLM())["mode"] == "reglas"

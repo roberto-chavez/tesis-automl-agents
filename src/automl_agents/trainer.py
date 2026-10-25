@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import gc
 import importlib
+import math
 import os
 
 os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")
@@ -12,6 +13,7 @@ import numpy as np  # noqa: E402
 import tensorflow as tf  # noqa: E402
 
 from .catalog import ArchSpec  # noqa: E402
+from .preprocessing import decode_and_preprocess  # noqa: E402
 
 CACHE_LIMIT_BYTES = 1.5e9
 
@@ -31,19 +33,14 @@ def preprocess_fn(spec: ArchSpec):
     return importlib.import_module(f"keras.applications.{spec.module}").preprocess_input
 
 
-def load_base_dataset(paths, labels, img_size: int, spec: ArchSpec):
+def load_base_dataset(paths, labels, img_size: int, spec: ArchSpec, *, cache=True):
     """Dataset sin lotes: decodifica, redimensiona y aplica el preprocesamiento del backbone."""
-    pre = preprocess_fn(spec)
-
     def _load(p, y):
-        img = tf.io.decode_image(tf.io.read_file(p), channels=3, expand_animations=False)
-        img.set_shape([None, None, 3])
-        img = tf.cast(tf.image.resize(img, (img_size, img_size)), tf.float32)
-        return pre(img), y
+        return decode_and_preprocess(tf.io.read_file(p), img_size, spec.module), y
 
     ds = tf.data.Dataset.from_tensor_slices((list(map(str, paths)), np.asarray(labels, dtype="int32")))
     ds = ds.map(_load, num_parallel_calls=tf.data.AUTOTUNE)
-    if len(paths) * img_size * img_size * 3 * 4 < CACHE_LIMIT_BYTES:
+    if cache and len(paths) * img_size * img_size * 3 * 4 < CACHE_LIMIT_BYTES:
         ds = ds.cache()
     return ds
 
@@ -89,22 +86,52 @@ class PruneCallback(keras.callbacks.Callback):
             self.model.stop_training = True
 
 
+class ProgressCallback(keras.callbacks.Callback):
+    def __init__(self, progress, cancellation=None, on_epoch=None):
+        super().__init__()
+        self.progress, self.cancellation, self.on_epoch = progress, cancellation, on_epoch
+
+    def on_epoch_end(self, epoch, logs=None):
+        if any(not math.isfinite(float(value)) for key, value in (logs or {}).items()
+               if key in ("loss", "accuracy", "val_loss", "val_accuracy")):
+            raise FloatingPointError("El entrenamiento produjo métricas no finitas")
+        for key in ("loss", "accuracy", "val_loss", "val_accuracy"):
+            if key in (logs or {}):
+                self.progress.setdefault("curves", {}).setdefault(key, []).append(float(logs[key]))
+        self.progress["epochs"] = epoch + 1
+        if self.cancellation and self.cancellation.is_cancelled():
+            self.progress["cancelled"] = True
+            self.model.stop_training = True
+        if self.on_epoch:
+            self.on_epoch(self.progress)
+
+
 def train_trial(spec, params, n_classes, img_size, ds_train, ds_val, max_epochs, pretrained,
-                class_weight, trial=None, seed=0):
+                class_weight, trial=None, seed=0, cancellation=None, progress=None, on_epoch=None):
+    progress = progress if progress is not None else {}
     keras.utils.set_random_seed(seed)
     model = build_model(spec, n_classes, img_size, params["dropout"], params["augment"], params["lr"],
                         pretrained)
-    cbs = [keras.callbacks.EarlyStopping(monitor="val_accuracy", patience=2, restore_best_weights=True)]
+    early = keras.callbacks.EarlyStopping(monitor="val_accuracy", mode="max", patience=2,
+                                          restore_best_weights=True)
+    cbs = [early]
     prune = PruneCallback(trial) if trial is not None else None
     if prune:
         cbs.append(prune)
+    cbs.append(ProgressCallback(progress, cancellation, on_epoch))
     hist = model.fit(ds_train, validation_data=ds_val, epochs=max_epochs, callbacks=cbs,
                      class_weight=class_weight, verbose=0)
     val_accs = hist.history.get("val_accuracy", [0.0])
+    cancelled = bool(progress.get("cancelled"))
+    reason = ("cancelled" if cancelled else "pruned" if prune and prune.pruned else
+              "early_stopping" if early.stopped_epoch > 0 else "max_epochs")
     return model, {
         "val_acc": float(max(val_accs)),
         "epochs": len(val_accs),
         "pruned": bool(prune and prune.pruned),
+        "cancelled": cancelled,
+        "curves": progress.get("curves", {}),
+        "stop_reason": reason,
     }
 
 

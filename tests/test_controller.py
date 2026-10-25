@@ -19,6 +19,8 @@ def test_discards_laggard_and_adjusts_leader():
     assert acts == {"c1": "ajustar", "c2": "descartar"}
     assert [c.id for c in nxt] == ["c1"] and not stop
     assert nxt[0].lr_values == [3e-4, 1e-3, 3e-3]  # vecinos de 1e-3
+    assert nxt[0].version == 2
+    assert decs[0]["candidate_version"] == 1 and decs[0]["next_candidate_version"] == 2
 
 
 def test_stops_on_last_round_and_on_target():

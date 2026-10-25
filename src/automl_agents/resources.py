@@ -65,7 +65,10 @@ class ResourceMonitor:
 
     def _loop(self):
         while not self._stop.wait(self.interval):
-            self._sample()
+            try:
+                self._sample()
+            except (psutil.Error, OSError):
+                pass
 
     def __enter__(self):
         self._t0 = time.perf_counter()
@@ -76,8 +79,11 @@ class ResourceMonitor:
 
     def __exit__(self, *exc):
         self._stop.set()
-        self._thread.join(timeout=2)
-        self._sample()
+        self._thread.join(timeout=4)
+        try:
+            self._sample()
+        except (psutil.Error, OSError):
+            pass
         u = self.usage
         u.seconds = time.perf_counter() - self._t0
         u.cpu_percent_avg = sum(u._cpu) / len(u._cpu) if u._cpu else 0.0

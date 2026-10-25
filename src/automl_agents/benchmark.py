@@ -5,16 +5,21 @@ ejecución (se declara así en el reporte); no se entrenan realmente.
 """
 from __future__ import annotations
 
+from collections import Counter
+
 from .catalog import full_space_size
 
 
-def compute_benchmark(records: list[dict], cfg, space: dict) -> dict:
+def compute_benchmark(records: list[dict], cfg, space: dict, stage_timings=None) -> dict:
     n = len(records)
     pruned = sum(r["pruned"] for r in records)
     epochs_used = sum(r["epochs"] for r in records)
     seconds = sum(r["resources"]["seconds"] for r in records)
     per_epoch = seconds / epochs_used if epochs_used else 0.0
-    epochs_full_trials = n * cfg.max_epochs
+    eligible = [r for r in records if r.get("status", "pruned" if r["pruned"] else "completed")
+                in ("completed", "pruned")]
+    epochs_eligible = sum(r["epochs"] for r in eligible)
+    epochs_full_trials = len(eligible) * cfg.max_epochs
     base_full_epochs = full_space_size() * cfg.max_epochs
     base_cand_epochs = space["candidate_configs"] * cfg.max_epochs
 
@@ -23,11 +28,17 @@ def compute_benchmark(records: list[dict], cfg, space: dict) -> dict:
 
     return {
         "trials_total": n, "trials_pruned": pruned,
+        "trial_status_counts": dict(Counter(r.get("status", "pruned" if r["pruned"] else "completed")
+                                           for r in records)),
         "pruned_pct": round(100 * pruned / n, 1) if n else 0.0,
         "epochs_used": epochs_used, "seconds_measured": round(seconds, 1),
+        "stage_seconds_measured": dict(stage_timings or {}),
+        "baselines_are_estimates": True,
         "seconds_per_epoch_avg": round(per_epoch, 2),
         "epochs_without_pruning_same_trials": epochs_full_trials,
-        "saving_from_early_stopping_pct": pct(epochs_used, epochs_full_trials),
+        "epochs_eligible_for_early_stopping": epochs_eligible,
+        "trials_with_early_stopping_baseline": len(eligible),
+        "saving_from_early_stopping_pct": pct(epochs_eligible, epochs_full_trials),
         "baseline_exhaustive_full_space": {
             "configs": full_space_size(), "epochs": base_full_epochs,
             "est_hours": round(base_full_epochs * per_epoch / 3600, 2),
@@ -37,5 +48,5 @@ def compute_benchmark(records: list[dict], cfg, space: dict) -> dict:
             "est_hours": round(base_cand_epochs * per_epoch / 3600, 2),
             "reduction_epochs_pct": pct(epochs_used, base_cand_epochs)},
         "note": ("Líneas base estimadas: configuraciones x épocas máximas x costo medio por época medido. "
-                 "Como el RAG excluye modelos pesados, el costo real de la línea base completa sería mayor."),
+                 "El costo real depende de las arquitecturas y recursos; no se midió una búsqueda exhaustiva."),
     }

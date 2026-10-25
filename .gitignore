@@ -6,3 +6,4 @@ runs/
 .env
 *.keras
 .pytest_cache/
+papers_articulos/

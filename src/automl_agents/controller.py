@@ -8,15 +8,18 @@ from .config import RunConfig
 
 
 def _best(records, cid):
-    done = [r["val_acc"] for r in records if r["candidate_id"] == cid and not r["pruned"]]
+    done = [r["val_acc"] for r in records if r["candidate_id"] == cid
+            and r.get("status", "pruned" if r["pruned"] else "completed") == "completed"]
     if done:
         return max(done)
-    partial = [r["val_acc"] for r in records if r["candidate_id"] == cid]
+    partial = [r["val_acc"] for r in records if r["candidate_id"] == cid
+               and r.get("status", "pruned") == "pruned"]
     return max(partial) if partial else 0.0
 
 
 def _best_params(records, cid):
-    rs = [r for r in records if r["candidate_id"] == cid and not r["pruned"]]
+    rs = [r for r in records if r["candidate_id"] == cid
+          and r.get("status", "pruned" if r["pruned"] else "completed") == "completed"]
     return max(rs, key=lambda r: r["val_acc"])["params"] if rs else None
 
 
@@ -50,7 +53,7 @@ def decide(round_idx: int, cands, records, cfg: RunConfig):
                 lr = _neighbors(c.lr_values, LR_GRID, bp["lr"])
                 dr = _neighbors(c.dropout_values, DROPOUT_GRID, bp["dropout"])
                 if (lr, dr) != (c.lr_values, c.dropout_values):
-                    c = dataclasses.replace(c, lr_values=lr, dropout_values=dr)
+                    c = dataclasses.replace(c, lr_values=lr, dropout_values=dr, version=c.version + 1)
                     decisions.append({"round": round_idx, "candidate_id": c.id, "action": "ajustar",
                                       "reason": f"Se acota el espacio alrededor de lr={bp['lr']} y dropout={bp['dropout']}."})
                     nxt.append(c)
@@ -59,4 +62,29 @@ def decide(round_idx: int, cands, records, cfg: RunConfig):
                               "reason": f"Val_acc {s:.3f} dentro del margen del líder ({leader:.3f})."})
             nxt.append(c)
     stop = last or leader >= cfg.target_accuracy or not nxt
+    versions = {c.id: c.version for c in cands}
+    next_versions = {c.id: c.version for c in nxt}
+    for decision in decisions:
+        cid = decision["candidate_id"]
+        decision["candidate_version"] = versions[cid]
+        if decision["action"] == "ajustar":
+            decision["next_candidate_version"] = next_versions[cid]
     return nxt, decisions, stop
+
+
+def diagnose(record):
+    """Diagnóstico básico: hechos observados y recomendación, sin afirmar causas."""
+    result = record["result"]
+    error = result.get("error")
+    findings = [f"Estado observado: {record['status']}"]
+    recommendation = "continue"
+    if error:
+        findings.append(f"Error observado: {error['code']}")
+        recommendation = "discard" if not error["recoverable"] else "review"
+    curves = result.get("curves", {})
+    train, val = curves.get("accuracy", []), curves.get("val_accuracy", [])
+    if train and val and train[-1] - val[-1] > .15:
+        findings.append("Brecha final de accuracy train/val mayor que 0.15; no demuestra sobreajuste.")
+        recommendation = "review"
+    return {"attempt_id": record["attempt_id"], "status": record["status"],
+            "findings": findings, "recommendation": recommendation}

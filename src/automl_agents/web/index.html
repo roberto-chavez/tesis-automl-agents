@@ -1,137 +1,69 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Construya su clasificador de imágenes</title>
-<style>
-  :root {
-    --bg:#e6eae7; --paper:#f8faf8; --ink:#16231f; --muted:#52625c; --line:#c3ccc7;
-    --signal:#f0b90b; --signal-ink:#2a2000; --steel:#2f5d7c; --ok:#1f7a4d; --bad:#b3261e;
-    --font: "Segoe UI", "Helvetica Neue", Arial, system-ui, sans-serif;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root { --bg:#141b19; --paper:#1c2522; --ink:#e7eeea; --muted:#9fb0a8; --line:#33423d; --steel:#7fb3d6; --ok:#5ec08f; --bad:#ff8a80; }
-  }
-  * { box-sizing: border-box; }
-  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.55 var(--font); }
-  main { max-width: 860px; margin: 0 auto; padding: 40px 20px 80px; }
-  h1 { font-size: clamp(1.9rem, 4.5vw, 2.8rem); line-height:1.1; margin:0 0 12px; letter-spacing:-0.02em; font-weight:800; }
-  .lead { max-width: 60ch; color:var(--muted); margin:0 0 32px; }
-  form, .panel { background:var(--paper); border:1px solid var(--line); border-radius:6px; padding:24px; margin-bottom:24px; }
-  label { display:block; font-weight:600; margin: 18px 0 6px; }
-  label:first-of-type { margin-top:0; }
-  .hint { color:var(--muted); font-weight:400; font-size:.9rem; display:block; }
-  input[type=file], textarea, select { width:100%; padding:10px; border:1px solid var(--line); border-radius:4px; background:var(--bg); color:var(--ink); font:inherit; }
-  textarea { min-height: 84px; resize: vertical; }
-  button { margin-top:22px; padding:12px 22px; border:0; border-radius:4px; background:var(--signal); color:var(--signal-ink); font:inherit; font-weight:700; cursor:pointer; }
-  button:disabled { opacity:.5; cursor:progress; }
-  :focus-visible { outline:3px solid var(--steel); outline-offset:2px; }
-  .err { color:var(--bad); margin-top:14px; font-weight:600; }
-  ol.steps { list-style:none; padding:0; margin:0 0 18px; display:grid; gap:8px; }
-  ol.steps li { display:flex; gap:12px; align-items:center; color:var(--muted); }
-  ol.steps li::before { content:""; width:14px; height:14px; border-radius:50%; border:2px solid var(--line); flex:none; }
-  ol.steps li.now { color:var(--ink); font-weight:700; }
-  ol.steps li.now::before { border-color:var(--signal); background:var(--signal); }
-  ol.steps li.done::before { border-color:var(--ok); background:var(--ok); }
-  #log { font-size:.9rem; color:var(--muted); max-height:180px; overflow:auto; border-top:1px solid var(--line); padding-top:12px; margin:0; list-style:none; }
-  .kpi { font-size: clamp(2.4rem, 8vw, 4rem); font-weight:800; line-height:1; letter-spacing:-0.03em; }
-  .row { display:flex; gap:16px; flex-wrap:wrap; margin-top:16px; }
-  a.btn { display:inline-block; padding:10px 18px; border-radius:4px; border:2px solid var(--steel); color:var(--steel); font-weight:700; text-decoration:none; }
-  a.btn.main { background:var(--steel); color:#fff; }
-  pre { white-space:pre-wrap; background:var(--bg); padding:16px; border-radius:4px; font:inherit; font-size:.95rem; }
-  [hidden] { display:none !important; }
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#174f42">
+  <title>AutoML · Su clasificador de imágenes</title>
+  <link rel="stylesheet" href="/assets/app.css">
+  <script src="/assets/app.js" defer></script>
 </head>
 <body>
-<main>
-  <h1>Construya su clasificador de imágenes sin programar</h1>
-  <p class="lead">Suba sus fotos ya ordenadas por categoría. El sistema prueba varios modelos, elige el mejor y le entrega una API lista para usar, con un reporte que explica cada decisión.</p>
-
-  <form id="form">
-    <label for="file">Su dataset en formato ZIP
-      <span class="hint">Una carpeta por categoría, con las fotos dentro. Ejemplo: defectuoso/, correcto/.</span></label>
-    <input id="file" name="file" type="file" accept=".zip" required>
-
-    <label for="use_case">¿Para qué usará el clasificador?
-      <span class="hint">Una frase basta. Si sus fotos incluyen personas, menciónelo: le avisaremos qué cuidar.</span></label>
-    <textarea id="use_case" name="use_case" maxlength="1000" placeholder="Separar piezas defectuosas en la línea de empaque"></textarea>
-
-    <label for="budget">¿Cuánto tiempo puede esperar?</label>
-    <select id="budget" name="budget">
-      <option value="rapido">Rápido: menos pruebas, resultado más aproximado</option>
-      <option value="estandar" selected>Equilibrado</option>
-      <option value="exhaustivo">Exhaustivo: más pruebas, tarda más</option>
-    </select>
-
-    <label for="tier">¿Con qué computadora se entrenará?</label>
-    <select id="tier" name="tier">
-      <option value="low" selected>Equipo modesto o GPU de 4 GB</option>
-      <option value="medium">GPU de 8 GB o más</option>
-      <option value="high">GPU potente o nube</option>
-    </select>
-
-    <button id="go" type="submit">Crear mi clasificador</button>
-    <div id="err" class="err" role="alert" hidden></div>
-  </form>
-
-  <section id="progress" class="panel" hidden aria-live="polite">
-    <ol class="steps" id="steps"></ol>
-    <ul id="log"></ul>
-  </section>
-
-  <section id="result" class="panel" hidden>
-    <div class="kpi" id="acc"></div>
-    <p id="acc-note" style="color:var(--muted);margin:6px 0 0"></p>
-    <div class="row">
-      <a class="btn main" id="dl" href="#">Descargar modelo y reportes</a>
-      <a class="btn" id="rep" href="#" target="_blank" rel="noopener">Ver reporte completo</a>
+<a class="skip" href="#main">Ir al contenido</a>
+<header class="header"><a class="brand" href="/" aria-label="AutoML, inicio"><span class="brand-mark" aria-hidden="true">◈</span> AutoML <span class="brand-note">ESTUDIO DE IMÁGENES</span></a><span class="local-note"><i></i> Entrenamiento en su equipo</span></header>
+<main id="main">
+  <nav class="journey" aria-label="Pasos del proyecto">
+    <button data-view="start" aria-current="step"><span>01</span> Inicio y carga</button>
+    <button data-view="tracking" disabled><span>02</span> Seguimiento</button>
+    <button data-view="results" disabled><span>03</span> Resultados</button>
+  </nav>
+  <div id="connection" class="notice warning" role="status" hidden></div>
+  <div id="current" class="current" hidden><div><span class="eyebrow">PROYECTO ACTUAL</span><code id="run-id"></code></div><span id="run-state" class="badge"></span><button class="text-button" id="open-current">Ver seguimiento →</button></div>
+  <p id="action-error" class="field-error" role="alert" hidden></p>
+  <p id="run-error" class="field-error" role="alert" hidden></p>
+  <section id="start" aria-labelledby="start-title">
+    <div class="intro"><div><p class="eyebrow">DE SUS IMÁGENES A UN MODELO</p><h1 id="start-title" tabindex="-1">Construya su clasificador.<br><em>Sin programar.</em></h1><p class="lead">Organice sus fotos por categoría. Nosotros probamos modelos y comparamos sus resultados, paso a paso.</p></div><div class="intro-note"><span class="mini-symbol" aria-hidden="true">↗</span><p>Usted conoce sus imágenes.<br>El sistema se encarga de entrenar.</p></div></div>
+    <div class="setup-grid">
+      <form id="form" class="panel" novalidate>
+        <div class="panel-heading"><span class="step-marker">1</span><div><h2>Prepare su proyecto</h2><p>Empiece con las imágenes que ya tiene.</p></div></div>
+        <label for="file">Imágenes organizadas en un ZIP <span class="required">Obligatorio</span></label>
+        <div class="file-box"><span class="file-icon" aria-hidden="true">↥</span><strong>Seleccione su archivo de imágenes</strong><input id="file" name="file" type="file" accept=".zip,application/zip" required aria-describedby="file-hint file-error"><span id="file-hint" class="hint">Hasta 512 MB · JPG, PNG, BMP o GIF dentro del ZIP</span></div>
+        <p id="file-error" class="field-error" role="alert" hidden></p>
+        <label for="use_case">¿Qué quiere distinguir en las fotos? <span class="optional">Opcional</span></label>
+        <textarea id="use_case" name="use_case" maxlength="1000" rows="3" placeholder="Por ejemplo: distinguir piezas correctas de piezas defectuosas."></textarea>
+        <label for="budget">¿Cuánto quiere explorar?</label>
+        <select id="budget" name="budget" aria-describedby="budget-hint"><option value="rapido">Prueba rápida · hasta 10 min de búsqueda</option><option value="estandar" selected>Equilibrado · hasta 30 min de búsqueda</option><option value="exhaustivo">Más alternativas · hasta 60 min de búsqueda</option></select>
+        <p id="budget-hint" class="hint">Son límites de búsqueda, no una estimación de entrega. La preparación, el cierre y la época en curso pueden añadir tiempo.</p>
+        <details class="advanced"><summary>Opciones del equipo y del entrenamiento</summary><label for="tier">Equipo que ejecuta el servidor</label><select id="tier" name="tier"><option value="low">Modesto · CPU o GPU de 4 GB</option><option value="medium">Intermedio · GPU de 8 GB</option><option value="high">Potente · GPU de mayor capacidad</option></select><label for="mode">Cómo se eligen las alternativas</label><select id="mode" name="mode"><option value="rules">Reglas automáticas · sin servicio de IA externo</option><option value="agentic">Asistente de IA · usa las credenciales del servidor</option></select><label class="check"><input id="pretrained" type="checkbox" checked> Partir de modelos previamente entrenados</label><p class="hint">Puede necesitar descargar pesos la primera vez. Desactive esta opción para una prueba sin descargas; con pocos datos, la calidad será limitada.</p></details>
+        <p id="form-error" class="field-error" role="alert" hidden></p>
+        <button id="go" class="primary" type="submit">Crear mi clasificador <span aria-hidden="true">→</span></button>
+        <p class="hint form-foot">Una ejecución a la vez. Los proyectos adicionales esperan su turno.</p>
+      </form>
+      <aside class="guide"><div class="guide-top"><span class="eyebrow">ANTES DE EMPEZAR</span><h2>Una carpeta.<br>Una categoría.</h2><p>El nombre de cada carpeta será la respuesta que aprenderá a dar su modelo.</p><pre aria-label="Ejemplo de estructura del ZIP">mis-imagenes.zip
+  ├─ correctas/
+  │    ├─ foto-01.jpg
+  │    └─ foto-02.jpg
+  └─ defectuosas/
+       ├─ foto-03.jpg
+       └─ foto-04.jpg</pre><ul class="requirements"><li>Al menos 2 categorías y 7 imágenes únicas por categoría.</li><li>Imágenes legibles, sin copias con etiquetas distintas.</li><li>Reserve variedad de fotos para una evaluación útil.</li></ul></div><div class="guide-bottom"><span class="eyebrow">QUÉ RECIBIRÁ</span><p>Un modelo, un reporte explicado y, si supera las comprobaciones locales, una API preparada para integrar.</p><p class="hint">La calidad y la verificación se muestran por separado.</p></div></aside>
     </div>
-    <pre id="report" hidden></pre>
   </section>
+  <section id="tracking" hidden aria-labelledby="tracking-title">
+    <div class="view-heading"><div><p class="eyebrow">SU PROYECTO, PASO A PASO</p><h1 id="tracking-title" tabindex="-1">Estamos trabajando en sus imágenes.</h1><p id="status-description" class="lead"></p></div><div class="actions"><button id="cancel" class="secondary" hidden>Cancelar entrenamiento</button><button id="resume" class="primary" hidden>Reanudar ejecución</button><button id="see-results" class="secondary" hidden>Ver resultados →</button></div></div>
+    <div id="live-status" class="notice" role="status" aria-live="polite" aria-atomic="true"></div>
+    <details><summary>Consultar otros límites de ejecución</summary><p id="budget-detail" class="hint"></p></details>
+    <div class="stats"><article class="stat"><span>Etapa actual</span><strong id="stage">En espera</strong><small id="task">El proyecto está en la cola.</small></article><article class="stat"><span>Intentos terminados</span><strong id="attempts">0</strong><small id="attempt-limit"></small></article><article class="stat"><span>Tiempo de búsqueda consumido</span><strong id="time">0 s</strong><small id="time-limit"></small></article><article class="stat"><span>Mejor acierto en validación</span><strong id="best">—</strong><small>Imágenes reservadas para comparar modelos.</small></article></div>
+    <div class="tracking-grid"><article class="panel"><div class="section-title"><h2>El recorrido</h2><span class="eyebrow">AVANCE MEDIDO</span></div><ol id="stages" class="stages"></ol><p class="hint">La búsqueda se adapta a lo aprendido. No se muestra un porcentaje total porque el número de pruebas puede cambiar.</p></article><article class="panel"><h2>Entrenamiento actual</h2><p id="epoch">Todavía no hay un intento activo.</p><div id="chart" class="chart"></div><p class="hint">Un paso (época) significa que el modelo recorrió las imágenes de entrenamiento. Las curvas se actualizan al terminar cada paso.</p><details><summary>Plan y decisiones del sistema</summary><ol id="plan" class="plain-list"></ol><ul id="decisions" class="plain-list"></ul></details></article></div>
+    <article class="panel activity"><h2>Actividad reciente</h2><ol id="events" class="events"></ol></article>
+  </section>
+  <section id="results" hidden aria-labelledby="results-title">
+    <div class="view-heading"><div><p class="eyebrow">LO QUE APRENDIMOS</p><h1 id="results-title" tabindex="-1">Resultados de su proyecto.</h1><p id="result-description" class="lead"></p></div><div class="actions"><button class="primary" id="result-resume" hidden>Reanudar ejecución</button><button class="secondary" id="new-project">Crear otro proyecto</button></div></div>
+    <div class="result-grid"><article class="panel result-main"><span class="eyebrow">MODELO SELECCIONADO</span><h2 id="winner">Sin modelo seleccionado</h2><div id="test-accuracy" class="score">—</div><p>Acierto con imágenes de prueba que no se usaron para elegir el modelo.</p><div class="result-metrics"><div><span>Equilibrio entre categorías (F1)</span><strong id="f1">—</strong></div><div><span>Imágenes de prueba</span><strong id="n-test">—</strong></div><div><span>Acierto de validación</span><strong id="val-accuracy">—</strong></div></div></article><article class="panel"><h2>Estado de la entrega</h2><dl class="delivery"><dt>Calidad del modelo</dt><dd id="quality"></dd><dt>Archivos disponibles</dt><dd id="delivery-state"></dd><dt>Verificación de la API</dt><dd id="verification"></dd><dt>Motivo de finalización</dt><dd id="reason"></dd></dl></article></div>
+    <article class="panel"><h2>Descargue lo que necesita</h2><p>Las opciones se habilitan cuando los archivos están disponibles y la ejecución se ha detenido.</p><div id="downloads" class="downloads"></div><p id="no-downloads" class="hint">No hay archivos disponibles todavía.</p><details id="report-details" hidden><summary>Leer el reporte de esta ejecución</summary><pre id="report">Abra esta sección para cargar el reporte.</pre></details></article>
+    <article class="notice"><h2>Antes de usar su modelo</h2><ul id="limitations"><li>El resultado depende de la variedad y calidad de sus imágenes.</li><li>Compruebe el modelo con fotos reales de su caso de uso antes de integrarlo.</li></ul></article>
+  </section>
+  <section class="history" aria-labelledby="history-title"><div class="section-title"><h2 id="history-title">Sus proyectos recientes</h2><button id="refresh-history" class="text-button">Actualizar lista</button></div><p id="history-empty" class="hint">Sus proyectos aparecerán aquí. Se conservan al reiniciar el servidor.</p><ul id="history-list"></ul></section>
 </main>
-<script>
-const STAGES = [
-  ["perfil","Revisando sus imágenes"], ["rag","Consultando buenas prácticas"],
-  ["candidatas","Eligiendo los modelos a probar"], ["train","Entrenando y comparando"],
-  ["evaluacion","Evaluando con imágenes nuevas"], ["reportes","Escribiendo los reportes"], ["listo","Modelo listo"]
-];
-const $ = id => document.getElementById(id);
-let timer = null;
-
-function renderSteps(events) {
-  const seen = new Set(events.map(e => e.stage === "control" ? "train" : e.stage));
-  let last = -1; STAGES.forEach(([k], i) => { if (seen.has(k)) last = i; });
-  $("steps").innerHTML = STAGES.map(([k, t], i) =>
-    `<li class="${i < last || (i === last && k === "listo") ? "done" : i === last ? "now" : ""}">${t}</li>`).join("");
-  $("log").innerHTML = events.slice(-8).reverse().map(e => `<li>${e.message.replace(/</g, "&lt;")}</li>`).join("");
-}
-
-async function poll(id) {
-  const r = await fetch(`/api/runs/${id}`); const d = await r.json();
-  renderSteps(d.events || []);
-  if (d.status === "done") {
-    clearInterval(timer);
-    const s = d.summary, acc = (s.test.accuracy * 100).toFixed(0);
-    $("acc").textContent = `${acc} % de aciertos`;
-    $("acc-note").textContent = `Modelo elegido: ${s.winner.architecture}. Medido con ${s.test.n_test} imágenes que no vio al entrenar.`;
-    $("dl").href = `/api/runs/${id}/download`; $("rep").href = `/api/runs/${id}/report`;
-    $("result").hidden = false; $("go").disabled = false;
-  } else if (d.status === "error") {
-    clearInterval(timer); $("go").disabled = false;
-    $("err").textContent = d.message || "La ejecución falló."; $("err").hidden = false;
-  }
-}
-
-$("form").addEventListener("submit", async ev => {
-  ev.preventDefault();
-  $("err").hidden = true; $("result").hidden = true; $("go").disabled = true;
-  const res = await fetch("/api/runs", { method: "POST", body: new FormData($("form")) });
-  const d = await res.json();
-  if (!res.ok) { $("err").textContent = d.detail || "No se pudo cargar el dataset."; $("err").hidden = false; $("go").disabled = false; return; }
-  $("progress").hidden = false; renderSteps([]);
-  timer = setInterval(() => poll(d.run_id), 3000); poll(d.run_id);
-});
-</script>
+<footer><span>AutoML · Clasificación de imágenes</span><span>Explore. Compare. Decida con evidencia.</span></footer>
 </body>
 </html>

@@ -8,11 +8,13 @@ version = "0.1.0"
 description = "Arquitectura multiagente + RAG para automatizar la selección, entrenamiento y empaquetado de modelos de clasificación de imágenes (tesis PUCP)"
 requires-python = ">=3.10"
 dependencies = [
+  "pydantic>=2.10,<3",
   "tensorflow-cpu>=2.16",
   "keras>=3.0",
   "optuna>=3.6",
   "chromadb>=0.5",
   "langgraph>=0.2",
+  "langgraph-checkpoint-sqlite>=2,<4",
   "scikit-learn>=1.4",
   "psutil>=5.9",
   "pillow>=10",
@@ -35,7 +37,7 @@ automl-agents = "automl_agents.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-automl_agents = ["knowledge/*.md", "knowledge/*.json", "web/*.html"]
+automl_agents = ["knowledge/*.md", "knowledge/*.json", "web/*.html", "web/*.css", "web/*.js"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
