@@ -37,7 +37,7 @@ automl-agents = "automl_agents.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-automl_agents = ["knowledge/*.md", "knowledge/*.json", "web/*.html", "web/*.css", "web/*.js"]
+automl_agents = ["knowledge/*.md", "knowledge/*.json", "web/*.html", "web/*.css", "web/*.js", "web/*-LICENSE.txt"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

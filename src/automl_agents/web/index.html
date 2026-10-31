@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#174f42">
   <title>AutoML · Su clasificador de imágenes</title>
-  <link rel="stylesheet" href="/assets/app.css">
-  <script src="/assets/app.js" defer></script>
+  <link rel="stylesheet" href="/assets/app.css?v=20261030-footer-spacing">
+  <script src="/assets/app.js?v=20261030-markdown" defer></script>
 </head>
 <body>
 <a class="skip" href="#main">Ir al contenido</a>
-<header class="header"><a class="brand" href="/" aria-label="AutoML, inicio"><span class="brand-mark" aria-hidden="true">◈</span> AutoML <span class="brand-note">ESTUDIO DE IMÁGENES</span></a><span class="local-note"><i></i> Entrenamiento en su equipo</span></header>
+<header class="header"><a class="brand" href="/" aria-label="AutoML, inicio"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M12 1 23 12 12 23 1 12Z M12 4.7 4.7 12 12 19.3 19.3 12Z" fill="currentColor" fill-rule="evenodd"/><path d="m12 6.8 5.2 5.2-5.2 5.2L6.8 12Z" fill="currentColor"/></svg></span> AutoML <span class="brand-note">ESTUDIO DE IMÁGENES</span></a><span class="local-note"><i></i> Entrenamiento en su equipo</span></header>
 <main id="main">
   <nav class="journey" aria-label="Pasos del proyecto">
     <button data-view="start" aria-current="step"><span>01</span> Inicio y carga</button>
@@ -26,8 +26,9 @@
     <div class="setup-grid">
       <form id="form" class="panel" novalidate>
         <div class="panel-heading"><span class="step-marker">1</span><div><h2>Prepare su proyecto</h2><p>Empiece con las imágenes que ya tiene.</p></div></div>
-        <label for="file">Imágenes organizadas en un ZIP <span class="required">Obligatorio</span></label>
-        <div class="file-box"><span class="file-icon" aria-hidden="true">↥</span><strong>Seleccione su archivo de imágenes</strong><input id="file" name="file" type="file" accept=".zip,application/zip" required aria-describedby="file-hint file-error"><span id="file-hint" class="hint">Hasta 512 MB · JPG, PNG, BMP o GIF dentro del ZIP</span></div>
+        <div id="file-label" class="field-label">Imágenes organizadas en un ZIP <span class="required">Obligatorio</span></div>
+        <div id="file-picker" class="file-box"><span class="file-icon" aria-hidden="true">↥</span><strong>Arrastre su ZIP aquí o elija un archivo</strong><input id="file" name="file" type="file" accept=".zip,application/zip" required aria-labelledby="file-label" aria-describedby="file-hint file-error" hidden><button id="choose-file" class="secondary" type="button" aria-describedby="file-hint file-error">Elegir archivo</button><span id="file-hint" class="hint">Hasta 512 MB · JPG, PNG, BMP o GIF dentro del ZIP</span></div>
+        <div id="file-card" class="file-card" hidden><span id="file-fallback" class="file-icon" aria-hidden="true">▤</span><div id="file-previews" class="file-previews" hidden></div><div class="file-details" role="status"><strong id="file-name"></strong><span id="file-size"></span></div><button id="remove-file" class="remove-file" type="button" aria-label="Eliminar archivo y elegir otro" title="Eliminar archivo y elegir otro">×</button></div>
         <p id="file-error" class="field-error" role="alert" hidden></p>
         <label for="use_case">¿Qué quiere distinguir en las fotos? <span class="optional">Opcional</span></label>
         <textarea id="use_case" name="use_case" maxlength="1000" rows="3" placeholder="Por ejemplo: distinguir piezas correctas de piezas defectuosas."></textarea>
@@ -50,16 +51,16 @@
   </section>
   <section id="tracking" hidden aria-labelledby="tracking-title">
     <div class="view-heading"><div><p class="eyebrow">SU PROYECTO, PASO A PASO</p><h1 id="tracking-title" tabindex="-1">Estamos trabajando en sus imágenes.</h1><p id="status-description" class="lead"></p></div><div class="actions"><button id="cancel" class="secondary" hidden>Cancelar entrenamiento</button><button id="resume" class="primary" hidden>Reanudar ejecución</button><button id="see-results" class="secondary" hidden>Ver resultados →</button></div></div>
-    <div id="live-status" class="notice" role="status" aria-live="polite" aria-atomic="true"></div>
-    <details><summary>Consultar otros límites de ejecución</summary><p id="budget-detail" class="hint"></p></details>
+    <div id="live-status" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
     <div class="stats"><article class="stat"><span>Etapa actual</span><strong id="stage">En espera</strong><small id="task">El proyecto está en la cola.</small></article><article class="stat"><span>Intentos terminados</span><strong id="attempts">0</strong><small id="attempt-limit"></small></article><article class="stat"><span>Tiempo de búsqueda consumido</span><strong id="time">0 s</strong><small id="time-limit"></small></article><article class="stat"><span>Mejor acierto en validación</span><strong id="best">—</strong><small>Imágenes reservadas para comparar modelos.</small></article></div>
     <div class="tracking-grid"><article class="panel"><div class="section-title"><h2>El recorrido</h2><span class="eyebrow">AVANCE MEDIDO</span></div><ol id="stages" class="stages"></ol><p class="hint">La búsqueda se adapta a lo aprendido. No se muestra un porcentaje total porque el número de pruebas puede cambiar.</p></article><article class="panel"><h2>Entrenamiento actual</h2><p id="epoch">Todavía no hay un intento activo.</p><div id="chart" class="chart"></div><p class="hint">Un paso (época) significa que el modelo recorrió las imágenes de entrenamiento. Las curvas se actualizan al terminar cada paso.</p><details><summary>Plan y decisiones del sistema</summary><ol id="plan" class="plain-list"></ol><ul id="decisions" class="plain-list"></ul></details></article></div>
     <article class="panel activity"><h2>Actividad reciente</h2><ol id="events" class="events"></ol></article>
+    <details class="execution-limits"><summary>Consultar otros límites de ejecución</summary><p id="budget-detail" class="hint"></p></details>
   </section>
   <section id="results" hidden aria-labelledby="results-title">
     <div class="view-heading"><div><p class="eyebrow">LO QUE APRENDIMOS</p><h1 id="results-title" tabindex="-1">Resultados de su proyecto.</h1><p id="result-description" class="lead"></p></div><div class="actions"><button class="primary" id="result-resume" hidden>Reanudar ejecución</button><button class="secondary" id="new-project">Crear otro proyecto</button></div></div>
     <div class="result-grid"><article class="panel result-main"><span class="eyebrow">MODELO SELECCIONADO</span><h2 id="winner">Sin modelo seleccionado</h2><div id="test-accuracy" class="score">—</div><p>Acierto con imágenes de prueba que no se usaron para elegir el modelo.</p><div class="result-metrics"><div><span>Equilibrio entre categorías (F1)</span><strong id="f1">—</strong></div><div><span>Imágenes de prueba</span><strong id="n-test">—</strong></div><div><span>Acierto de validación</span><strong id="val-accuracy">—</strong></div></div></article><article class="panel"><h2>Estado de la entrega</h2><dl class="delivery"><dt>Calidad del modelo</dt><dd id="quality"></dd><dt>Archivos disponibles</dt><dd id="delivery-state"></dd><dt>Verificación de la API</dt><dd id="verification"></dd><dt>Motivo de finalización</dt><dd id="reason"></dd></dl></article></div>
-    <article class="panel"><h2>Descargue lo que necesita</h2><p>Las opciones se habilitan cuando los archivos están disponibles y la ejecución se ha detenido.</p><div id="downloads" class="downloads"></div><p id="no-downloads" class="hint">No hay archivos disponibles todavía.</p><details id="report-details" hidden><summary>Leer el reporte de esta ejecución</summary><pre id="report">Abra esta sección para cargar el reporte.</pre></details></article>
+    <article class="panel"><h2>Descargue lo que necesita</h2><p>Las opciones se habilitan cuando los archivos están disponibles y la ejecución se ha detenido.</p><div id="downloads" class="downloads"></div><p id="no-downloads" class="hint">No hay archivos disponibles todavía.</p><details id="report-details" hidden><summary>Leer el reporte de esta ejecución</summary><div id="report" class="report-content" role="region" aria-label="Reporte de la ejecución" tabindex="0">Abra esta sección para cargar el reporte.</div></details></article>
     <article class="notice"><h2>Antes de usar su modelo</h2><ul id="limitations"><li>El resultado depende de la variedad y calidad de sus imágenes.</li><li>Compruebe el modelo con fotos reales de su caso de uso antes de integrarlo.</li></ul></article>
   </section>
   <section class="history" aria-labelledby="history-title"><div class="section-title"><h2 id="history-title">Sus proyectos recientes</h2><button id="refresh-history" class="text-button">Actualizar lista</button></div><p id="history-empty" class="hint">Sus proyectos aparecerán aquí. Se conservan al reiniciar el servidor.</p><ul id="history-list"></ul></section>

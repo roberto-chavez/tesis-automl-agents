@@ -78,7 +78,7 @@ function render(d) {
   $("current").hidden=false; text("run-id",d.run_id); text("run-state",labels[d.status] || d.status);
   document.querySelector('[data-view="tracking"]').disabled=false;
   document.querySelector('[data-view="results"]').disabled=!done;
-  text("tracking-title",done ? "Su ejecución se ha detenido." : d.status === "queued" ? "Su proyecto está en espera." : "Estamos trabajando en sus imágenes.");
+  text("tracking-title",done ? "Su ejecución ha terminado." : d.status === "queued" ? "Su proyecto está en espera." : "Estamos trabajando en sus imágenes.");
   text("status-description",descriptions[d.status] || "Consultando el estado de su proyecto.");
   const announcement = [labels[d.status],d.message].filter(Boolean).join(" · ");
   if ($("live-status").textContent !== announcement) text("live-status",announcement);
@@ -160,13 +160,129 @@ async function refreshHistory() {
     list("history-list",body.runs.slice(0,20),(li,run)=>{const button=document.createElement("button");const code=document.createElement("code");code.textContent=run.run_id;const badge=document.createElement("span");badge.className="badge";badge.textContent=labels[run.status] || run.status;button.append(code,badge);button.addEventListener("click",()=>openRun(run.run_id,terminal.has(run.status)?"results":"tracking"));li.append(button);});
   } catch { text("history-empty","No se pudo actualizar la lista. Use «Actualizar lista» para reintentar."); $("history-empty").hidden=false; }
 }
+let previewWorker = null, previewTimer = null, previewUrls = [];
+function previewFile(file) {
+  previewWorker?.terminate();
+  previewWorker=null;
+  clearTimeout(previewTimer);
+  previewUrls.forEach(url=>URL.revokeObjectURL(url));
+  previewUrls=[];
+  $("file-previews").replaceChildren();
+  $("file-previews").hidden=true;
+  $("file-fallback").hidden=false;
+  if(!file || !file.name.toLowerCase().endsWith(".zip") || file.size>512000000) return;
+  try {
+    const worker=new Worker("/assets/zip-preview.js?v=20261030-previews");
+    previewWorker=worker;
+    const stop=()=>{worker.terminate();if(previewWorker===worker) previewWorker=null;clearTimeout(previewTimer);};
+    previewTimer=setTimeout(stop,15000);
+    worker.onerror=stop;
+    worker.onmessage=({data})=>{
+      if(previewWorker!==worker) return;
+      if(data.done) {stop();return;}
+      const url=URL.createObjectURL(data.blob);
+      previewUrls.push(url);
+      const image=document.createElement("img");
+      image.src=url;image.alt=`Vista previa de ${data.label}`;image.title=data.label;
+      image.width=48;image.height=48;
+      $("file-previews").append(image);
+      $("file-previews").hidden=false;
+      $("file-fallback").hidden=true;
+    };
+    worker.postMessage(file);
+  } catch { /* The file remains selectable when previews are unavailable. */ }
+}
+function updateFileSelection() {
+  const file=$("file").files[0];
+  previewFile(file);
+  $("file-picker").hidden=Boolean(file);
+  $("file-card").hidden=!file;
+  text("file-name",file ? file.name : "");
+  let size="";
+  if(file) {
+    const unit=file.size>=1000000 ? "MB" : file.size>=1000 ? "KB" : "B";
+    const divisor=unit==="MB" ? 1000000 : unit==="KB" ? 1000 : 1;
+    size=`${(file.size/divisor).toLocaleString("es-PE",{maximumFractionDigits:2})} ${unit}`;
+  }
+  text("file-size",size);
+  $("file-error").hidden=true;
+  $("file").removeAttribute("aria-invalid");
+}
+const dropZone=$("file-picker");
+let dragDepth=0;
+const hasDraggedFiles=event=>Array.from(event.dataTransfer?.types || []).includes("Files");
+function clearFileDrag() {
+  dragDepth=0;
+  dropZone.classList.remove("is-dragging");
+}
+dropZone.addEventListener("dragenter",event=>{
+  if(!hasDraggedFiles(event) || dropZone.hidden) return;
+  event.preventDefault();
+  dragDepth++;
+  dropZone.classList.add("is-dragging");
+});
+dropZone.addEventListener("dragover",event=>{
+  if(!hasDraggedFiles(event) || dropZone.hidden) return;
+  event.preventDefault();
+  event.dataTransfer.dropEffect="copy";
+});
+dropZone.addEventListener("dragleave",()=>{
+  dragDepth=Math.max(0,dragDepth-1);
+  if(!dragDepth) clearFileDrag();
+});
+dropZone.addEventListener("drop",event=>{
+  if(!hasDraggedFiles(event) || dropZone.hidden) return;
+  event.preventDefault();
+  event.stopPropagation();
+  clearFileDrag();
+  const files=Array.from(event.dataTransfer.files);
+  const file=files[0];
+  if(files.length!==1 || !file.name.toLowerCase().endsWith(".zip") || file.size>512000000) {
+    text("file-error",files.length>1 ? "Arrastre un solo archivo ZIP a la vez." : "Seleccione un ZIP de hasta 512 MB.");
+    $("file-error").hidden=false;
+    $("file").setAttribute("aria-invalid","true");
+    $("choose-file").focus();
+    return;
+  }
+  const transfer=new DataTransfer();
+  transfer.items.add(file);
+  $("file").files=transfer.files;
+  updateFileSelection();
+  $("remove-file").focus();
+});
+// Prevent the browser from opening files dropped outside the green area.
+document.addEventListener("dragover",event=>{
+  if(!hasDraggedFiles(event)) return;
+  event.preventDefault();
+  if(dropZone.hidden || !dropZone.contains(event.target)) {
+    event.dataTransfer.dropEffect="none";
+    clearFileDrag();
+  }
+});
+document.addEventListener("drop",event=>{
+  if(hasDraggedFiles(event)) event.preventDefault();
+  clearFileDrag();
+});
+document.addEventListener("dragend",clearFileDrag);
+window.addEventListener("blur",clearFileDrag);
+$("choose-file").addEventListener("click",()=>$("file").click());
+$("file").addEventListener("change",()=>{
+  updateFileSelection();
+  if($("file").files.length) $("remove-file").focus();
+});
+$("remove-file").addEventListener("click",()=>{
+  $("file").value="";
+  updateFileSelection();
+  $("choose-file").focus();
+});
+updateFileSelection();
 $("form").addEventListener("submit",async event=>{
   event.preventDefault();
   for(const id of ["file-error","form-error"]) $(id).hidden=true;
   $("file").removeAttribute("aria-invalid");
   const file=$("file").files[0];
   if(!file || !file.name.toLowerCase().endsWith(".zip") || file.size>512000000) {
-    text("file-error",!file ? "Seleccione su archivo ZIP para continuar." : "Seleccione un ZIP de hasta 512 MB.");$("file-error").hidden=false;$("file").setAttribute("aria-invalid","true");$("file").focus();return;
+    text("file-error",!file ? "Seleccione su archivo ZIP para continuar." : "Seleccione un ZIP de hasta 512 MB.");$("file-error").hidden=false;$("file").setAttribute("aria-invalid","true");($("file").files.length ? $("remove-file") : $("choose-file")).focus();return;
   }
   $("go").disabled=true;text("go","Subiendo y revisando imágenes…");$("form").setAttribute("aria-busy","true");
   try {
@@ -174,7 +290,7 @@ $("form").addEventListener("submit",async event=>{
     // Una carga grande puede tardar más que las consultas de seguimiento.
     const created=await (await request("/api/runs",{method:"POST",body:form,signal:AbortSignal.timeout(600000)})).json();
     await openRun(created.run_id); await refreshHistory();
-  } catch(error) { const target=error.field==="file" ? "file-error" : "form-error";text(target,error.message);$(target).hidden=false;if(target==="file-error"){$("file").setAttribute("aria-invalid","true");$("file").focus();} }
+  } catch(error) { const target=error.field==="file" ? "file-error" : "form-error";text(target,error.message);$(target).hidden=false;if(target==="file-error"){$("file").setAttribute("aria-invalid","true");($("file").files.length ? $("remove-file") : $("choose-file")).focus();} }
   finally { $("go").disabled=false;text("go","Crear mi clasificador →");$("form").removeAttribute("aria-busy"); }
 });
 async function action(name) {
@@ -192,8 +308,14 @@ document.querySelectorAll("[data-view]").forEach(button=>button.addEventListener
 $("report-details").addEventListener("toggle",async()=>{
   if(!$("report-details").open || reportRun===runId) return;
   const id=runId;text("report","Cargando reporte…");
-  try {const report=await (await request(`/api/runs/${id}/report`)).text();if(id===runId){text("report",report);reportRun=id;}}
-  catch(error){text("report",`${error.message} Cierre y abra esta sección para reintentar.`);}
+  try {
+    const [report,{renderReport}]=await Promise.all([
+      request(`/api/runs/${id}/report`).then(response=>response.text()),
+      import("/assets/report-markdown.js?v=20261030-markdown")
+    ]);
+    if(id===runId) {renderReport($("report"),report);reportRun=id;}
+  }
+  catch(error){if(id===runId) text("report",`${error.message} Cierre y abra esta sección para reintentar.`);}
 });
 function restore() {const [,next,id]=location.hash.split(/[\/#]/);const selected=id || remembered();if(selected)openRun(selected,["start","tracking","results"].includes(next)?next:"tracking",false);else showView("start",false);}
 window.addEventListener("hashchange",restore);refreshHistory();restore();
