@@ -33,7 +33,8 @@ def wilson(acc: float, n: int, z=1.96):
 
 def write_criteria_report(rd: Path, profile, prop: dict, docs) -> None:
     data = {
-        "mode": prop["mode"], "note": prop["note"], "dataset": profile.to_dict(),
+        "mode": prop["mode"], "note": prop["note"], "error": prop.get("error"),
+        "dataset": profile.to_dict(),
         "criteria": {**prop["criteria"], "retrieved_docs": [d.to_dict() for d in docs]},
         "space": prop["space"],
         "candidates": [c.to_dict() for c in prop["candidates"]],

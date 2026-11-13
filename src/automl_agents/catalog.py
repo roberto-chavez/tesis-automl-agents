@@ -1,4 +1,4 @@
-"""Catálogo de arquitecturas (Keras Applications) y espacio de hiperparámetros discretizado.
+"""Catálogo de arquitecturas (Keras Applications y CNN local) y rejilla discretizada.
 
 El espacio se discretiza a propósito: así el "tamaño del espacio total" (R1.2) y el
 reparto de trabajo de Optuna (R2.3) se miden sobre exactamente los mismos valores.
@@ -17,8 +17,8 @@ GRID_SIZE = len(LR_GRID) * len(DROPOUT_GRID) * len(BATCH_GRID) * len(AUGMENT_GRI
 
 @dataclass(frozen=True)
 class ArchSpec:
-    name: str          # nombre en Keras Applications
-    module: str        # submódulo de keras.applications con preprocess_input
+    name: str          # nombre en Keras Applications o SmallCNN local
+    module: str        # submódulo de keras.applications o normalización small_cnn
     params_m: float    # parámetros aproximados (millones), backbone sin cabeza
     input_size: int    # resolución nativa
     tier: str          # light | medium | heavy (peso computacional relativo)
@@ -28,6 +28,7 @@ class ArchSpec:
 CATALOG: dict[str, ArchSpec] = {
     s.name: s
     for s in [
+        ArchSpec("SmallCNN", "small_cnn", 0.42, 28, "light", 0.30),
         ArchSpec("MobileNetV2", "mobilenet_v2", 3.5, 224, "light", 0.80),
         ArchSpec("MobileNetV3Small", "mobilenet_v3", 2.5, 224, "light", 0.70),
         ArchSpec("EfficientNetB0", "efficientnet", 5.3, 224, "light", 0.85),

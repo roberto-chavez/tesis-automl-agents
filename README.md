@@ -58,6 +58,29 @@ manifiesto. Las fracciones se aplican por clase a grupos de archivos idénticos,
 val/test hacia abajo y asignando el resto a entrenamiento. El perfil para RAG y candidatas
 se calcula solo sobre entrenamiento.
 
+### MNIST e imágenes pequeñas
+
+Para imágenes con mediana de dimensiones de hasta 32×32, la propuesta reserva una
+candidata `SmallCNN` (si las arquitecturas permitidas la incluyen), tanto con reglas
+como con LLM. Se entrena desde cero a 28×28, normaliza a [0,1] y conserva información
+espacial. No necesita pesos ImageNet. Los aumentos no reflejan horizontalmente las
+imágenes; para dígitos se usan rotaciones, traslaciones y zoom moderados.
+La carga web permite hasta 20 épocas por intento para estas imágenes, conservando
+el límite de tiempo del modo elegido. En CLI, usar `--epochs 20`.
+
+Para verificar el objetivo mínimo de 95 % con hasta 20 épocas por intento:
+
+```bash
+python scripts/verify_mnist.py --dataset ruta/a/mnist
+# Comparación con exactamente los manifiestos de una ejecución anterior:
+python scripts/verify_mnist.py --dataset ruta/a/mnist --reference-run runs/ID_ANTERIOR
+```
+
+El script crea una ejecución nueva, conserva los reportes y escribe `acceptance.json`.
+Termina con error si la mejor accuracy de validación queda por debajo de 0.95.
+El test permanece separado y sólo se evalúa tras cerrar la búsqueda. El umbral es
+un criterio de aceptación medido, no una garantía para cualquier muestra o presupuesto.
+
 Al reutilizar el mismo `RunConfig.run_id`, el pipeline y el motor leen las particiones
 guardadas y verifican los archivos actuales. Cambios en imágenes, rutas, clases, semilla
 o fracciones detienen la operación. Un par de manifiestos incompleto o inválido también
@@ -139,10 +162,10 @@ pytest -q        # Incluye entrenamiento y API exportada reales, sin descargar p
 - **No ejecutado en este entorno:** GPU GTX 1650.
 - Las líneas base de R4.3 son **estimaciones** (config × épocas × costo medio por época medido), no corridas reales.
   Para la tesis conviene medir una línea base real (p. ej. búsqueda exhaustiva en un dataset pequeño).
-- El KB inicial tiene 23 documentos redactados a mano (11 arquitecturas + 12 guías); ampliarlo con más campos
+- El KB tiene 24 documentos redactados a mano (12 arquitecturas + 12 guías); ampliarlo con más campos
   por modelo es una tarea pendiente del asesor. Con embeddings hash la exhaustividad@3 es ~0.6; con
   `sentence-transformers` debería mejorar (medirlo con `kb-eval`).
-- El modo `--no-pretrained` es solo para pruebas: con pocos pasos por época, las estadísticas de BatchNorm de una red
+- Para Keras Applications, el modo `--no-pretrained` es solo para pruebas: con pocos pasos por época, las estadísticas de BatchNorm de una red
   entrenada desde cero no convergen y la exactitud de validación se queda en azar (el entrenamiento sí aprende). No use
   sus métricas para juzgar el sistema; la ruta real usa backbone preentrenado y congelado.
 - Sin *fine-tuning* del backbone (solo cabeza), sin recomendación de métricas por el agente, sin autenticación

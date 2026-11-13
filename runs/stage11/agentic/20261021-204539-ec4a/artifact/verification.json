@@ -1,0 +1,52 @@
+{
+  "status": "passed",
+  "verified": true,
+  "checks": {
+    "integrity": {
+      "status": "passed"
+    },
+    "local": {
+      "status": "passed",
+      "returncode": 0,
+      "output": "{\"checks\": {\"load_model\": {\"status\": \"passed\"}, \"preprocessing\": {\"status\": \"passed\"}, \"health\": {\"status\": \"passed\"}, \"labels\": {\"status\": \"passed\"}, \"predict\": {\"status\": \"passed\"}, \"invalid_image\": {\"status\": \"passed\"}}, \"status\": \"passed\"}\n2026-10-24 14:13:53.327761: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.\nD:\\Tesis\\tesis-automl-agents\\.venv\\lib\\site-packages\\google\\api_core\\_python_version_support.py:223: FutureWarning: You are using a non-supported Python version (3.10.10). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.11, and then update google.api_core.\n  warnings.warn(message, FutureWarning)\n2026-10-24 14:14:08.631465: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.\n2026-10-24 14:14:17.357309: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.\nTo enable the following instructions: SSE3 SSE4.1 SSE4.2 AVX AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.\n2026-10-24 14:14:27.785586: I tensorflow/core/framework/local_rendezvous.cc:407] Local rendezvous is aborting with status: INVALID_ARGUMENT: Unknown image file format. One of JPEG, PNG, GIF, BMP, WebP required.\n",
+      "seconds": 38.22318809999979,
+      "checks": {
+        "load_model": {
+          "status": "passed"
+        },
+        "preprocessing": {
+          "status": "passed"
+        },
+        "health": {
+          "status": "passed"
+        },
+        "labels": {
+          "status": "passed"
+        },
+        "predict": {
+          "status": "passed"
+        },
+        "invalid_image": {
+          "status": "passed"
+        }
+      }
+    },
+    "docker": {
+      "status": "passed",
+      "steps": {
+        "build": {
+          "status": "passed",
+          "returncode": 0,
+          "output": "#0 building with \"desktop-linux\" instance using docker driver\n\n#1 [internal] load build definition from Dockerfile\n#1 transferring dockerfile: 243B 0.1s done\n#1 DONE 0.2s\n\n#2 [internal] load metadata for docker.io/library/python:3.11-slim\n#2 DONE 0.9s\n\n#3 [internal] load .dockerignore\n#3 transferring context: 2B 0.0s done\n#3 DONE 0.1s\n\n#4 [internal] load build context\n#4 ...\n\n#5 [1/5] FROM docker.io/library/python:3.11-slim@sha256:b7a9e5f6a93d6d4a31f129bbd4bdee69efccb6ded0fb230d78aafaf37af98377\n#5 resolve docker.io/library/python:3.11-slim@sha256:b7a9e5f6a93d6d4a31f129bbd4bdee69efccb6ded0fb230d78aafaf37af98377 0.2s done\n#5 DONE 0.2s\n\n#4 [internal] load build context\n#4 transferring context: 7.31MB 4.8s\n#4 transferring context: 9.72MB 7.1s done\n#4 DONE 7.3s\n\n#6 [2/5] WORKDIR /srv\n#6 CACHED\n\n#7 [3/5] COPY requirements.txt .\n#7 CACHED\n\n#8 [4/5] RUN pip install --no-cache-dir -r requirements.txt\n#8 CACHED\n\n#9 [5/5] COPY . .\n#9 CACHED\n\n#10 exporting to image\n#10 exporting layers\n#10 exporting layers 0.0s done\n#10 exporting manifest sha256:fe037810beab7f0a6e53188c12bbcd03d3323000afddce36ba867d0d29231cb1 0.1s done\n#10 exporting config sha256:fd09c7539481a40612fe0177aed828e023182f1181aa7ce17a797971e258875a 0.1s done\n#10 exporting attestation manifest sha256:a8f837c8c4a04efc99fbb4b2e0675ac7baa96cf5731f543d2c5e4450d3b89c0f\n#10 exporting attestation manifest sha256:a8f837c8c4a04efc99fbb4b2e0675ac7baa96cf5731f543d2c5e4450d3b89c0f 0.4s done\n#10 exporting manifest list sha256:4582a5469eac60a840a2a9b9bcc49baedfd3a948ba445287ebef863d43c9239e\n#10 exporting manifest list sha256:4582a5469eac60a840a2a9b9bcc49baedfd3a948ba445287ebef863d43c9239e 0.3s done\n#10 naming to docker.io/library/automl-verify-31476a04f80a4b068dbd3db280e87223:latest\n#10 ...\n\n#8 [4/5] RUN pip install --no-cache-dir -r requirements.txt\n#8 CACHED\n\n#10 exporting to image\n#10 naming to docker.io/library/automl-verify-31476a04f80a4b068dbd3db280e87223:latest 0.0s done\n#10 unpacking to docker.io/library/automl-verify-31476a04f80a4b068dbd3db280e87223:latest\n#10 unpacking to docker.io/library/automl-verify-31476a04f80a4b068dbd3db280e87223:latest 95.2s done\n#10 DONE 96.5s\n",
+          "seconds": 109.5906488999999
+        },
+        "smoke": {
+          "status": "passed",
+          "returncode": 0,
+          "output": "{\"checks\": {\"load_model\": {\"status\": \"passed\"}, \"preprocessing\": {\"status\": \"passed\"}, \"health\": {\"status\": \"passed\"}, \"labels\": {\"status\": \"passed\"}, \"predict\": {\"status\": \"passed\"}, \"invalid_image\": {\"status\": \"passed\"}}, \"status\": \"passed\"}\nWARNING: All log messages before absl::InitializeLog() is called are written to STDERR\nI0000 00:00:1792869390.859242       1 cpu_feature_guard.cc:227] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.\nTo enable the following instructions: AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.\n/usr/local/lib/python3.11/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.\n  from starlette.testclient import TestClient as TestClient  # noqa\nW0000 00:00:1792869407.230786      78 local_rendezvous.cc:412] Local rendezvous is aborting with status: INVALID_ARGUMENT: Unknown image file format. One of JPEG, JPEG XL, PNG, GIF, BMP, WebP required.\n",
+          "seconds": 26.787833399999727
+        }
+      }
+    }
+  }
+}

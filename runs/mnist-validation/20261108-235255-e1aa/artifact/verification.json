@@ -1,0 +1,45 @@
+{
+  "status": "not_run",
+  "verified": false,
+  "checks": {
+    "integrity": {
+      "status": "passed"
+    },
+    "local": {
+      "status": "passed",
+      "returncode": 0,
+      "output": "{\"checks\": {\"load_model\": {\"status\": \"passed\"}, \"preprocessing\": {\"status\": \"passed\"}, \"health\": {\"status\": \"passed\"}, \"labels\": {\"status\": \"passed\"}, \"predict\": {\"status\": \"passed\"}, \"invalid_image\": {\"status\": \"passed\"}}, \"status\": \"passed\"}\nD:\\Tesis\\tesis-automl-agents\\.venv\\lib\\site-packages\\google\\api_core\\_python_version_support.py:223: FutureWarning: You are using a non-supported Python version (3.10.10). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.11, and then update google.api_core.\n  warnings.warn(message, FutureWarning)\n",
+      "seconds": 75.8060951999978,
+      "checks": {
+        "load_model": {
+          "status": "passed"
+        },
+        "preprocessing": {
+          "status": "passed"
+        },
+        "health": {
+          "status": "passed"
+        },
+        "labels": {
+          "status": "passed"
+        },
+        "predict": {
+          "status": "passed"
+        },
+        "invalid_image": {
+          "status": "passed"
+        }
+      }
+    },
+    "docker": {
+      "status": "not_run",
+      "reason": "docker_unavailable",
+      "probe": {
+        "status": "failed",
+        "returncode": 1,
+        "output": "Client:\n Version:    29.9.2\n Context:    default\n Debug Mode: false\n\nServer:\nWARNING: Error loading config file: open C:\\Users\\rober\\.docker\\config.json: Acceso denegado.\nfailed to connect to the docker API at npipe:////./pipe/docker_engine; check if the path is correct and if the daemon is running: open //./pipe/docker_engine: El sistema no puede encontrar el archivo especificado.\n",
+        "seconds": 0.3718169999992824
+      }
+    }
+  }
+}

@@ -54,3 +54,18 @@ def test_rules_and_no_llm_never_call_injected_client():
 
     for cfg in (RunConfig(dataset_dir="x", mode="rules"), RunConfig(dataset_dir="x", use_llm=False)):
         assert propose(_profile(), [], cfg, ForbiddenLLM())["mode"] == "reglas"
+
+
+def test_small_images_reserve_trainable_cnn_in_rules_and_llm():
+    profile = DatasetProfile("x", [str(i) for i in range(10)],
+                             {str(i): 100 for i in range(10)}, 1000, 1., (28, 28), 28)
+    llm = FakeLLM({"candidatas": [{"arquitectura": "MobileNetV2"}], "descartadas": []})
+    for client in (None, llm):
+        result = propose(profile, [], RunConfig(dataset_dir="x", max_candidates=1), client)
+        assert len(result["candidates"]) == 1
+        candidate = result["candidates"][0]
+        assert candidate.architecture == "SmallCNN"
+        assert candidate.img_size == 28
+        assert not any(d["architecture"] == "SmallCNN" for d in result["discarded"])
+    cfg = RunConfig(dataset_dir="x", allowed_architectures=["MobileNetV2"])
+    assert propose(profile, [], cfg, None)["candidates"][0].architecture == "MobileNetV2"

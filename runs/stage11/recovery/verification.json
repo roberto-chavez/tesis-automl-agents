@@ -1,0 +1,66 @@
+{
+  "run_id": "20261021-204738-252b",
+  "status": "target_not_reached",
+  "process_killed": true,
+  "confirmed_before": [
+    "6f99636b8b784e3997ecf981019a1a40"
+  ],
+  "interrupted_attempt": "28529035f7ef4de4843d593288082f4a",
+  "retry_attempt": "17a054204a3640d4a82b880be6993493",
+  "attempts": 4,
+  "budget_before": {
+    "training_attempts": 2,
+    "decisions": 9,
+    "llm_calls": 0,
+    "retries": 0,
+    "search_seconds": 68.77201414108276
+  },
+  "budget_after": {
+    "training_attempts": 4,
+    "decisions": 10,
+    "llm_calls": 0,
+    "retries": 1,
+    "search_seconds": 176.06382942199707
+  },
+  "replay_without_training": true,
+  "checkpoint_consistent": true,
+  "verification": {
+    "status": "not_run",
+    "verified": false,
+    "checks": {
+      "integrity": {
+        "status": "passed"
+      },
+      "local": {
+        "status": "passed",
+        "returncode": 0,
+        "output": "{\"checks\": {\"load_model\": {\"status\": \"passed\"}, \"preprocessing\": {\"status\": \"passed\"}, \"health\": {\"status\": \"passed\"}, \"labels\": {\"status\": \"passed\"}, \"predict\": {\"status\": \"passed\"}, \"invalid_image\": {\"status\": \"passed\"}}, \"status\": \"passed\"}\n2026-10-21 20:51:12.963067: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.\nD:\\Tesis\\tesis-automl-agents\\.venv\\lib\\site-packages\\google\\api_core\\_python_version_support.py:223: FutureWarning: You are using a non-supported Python version (3.10.10). Google will not post any further updates to google.api_core supporting this Python version. Please upgrade to the latest Python version, or at least Python 3.11, and then update google.api_core.\n  warnings.warn(message, FutureWarning)\n2026-10-21 20:51:19.545838: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.\n2026-10-21 20:51:22.754327: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.\nTo enable the following instructions: SSE3 SSE4.1 SSE4.2 AVX AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.\n2026-10-21 20:51:26.731535: I tensorflow/core/framework/local_rendezvous.cc:407] Local rendezvous is aborting with status: INVALID_ARGUMENT: Unknown image file format. One of JPEG, PNG, GIF, BMP, WebP required.\n",
+        "seconds": 15.631053600000087,
+        "checks": {
+          "load_model": {
+            "status": "passed"
+          },
+          "preprocessing": {
+            "status": "passed"
+          },
+          "health": {
+            "status": "passed"
+          },
+          "labels": {
+            "status": "passed"
+          },
+          "predict": {
+            "status": "passed"
+          },
+          "invalid_image": {
+            "status": "passed"
+          }
+        }
+      },
+      "docker": {
+        "status": "not_run",
+        "reason": "docker_not_installed"
+      }
+    }
+  }
+}

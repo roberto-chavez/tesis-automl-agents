@@ -64,15 +64,27 @@ class LLM:
             # Sin esto, los "tokens de pensamiento" consumen el presupuesto de salida
             # y la respuesta puede quedar vacía o cortada a mitad del JSON.
             cfg["thinking_config"] = t.ThinkingConfig(thinking_budget=0)
+        elif self.model_name.startswith("gemini-3"):
+            # Gemini 3 comparte max_output_tokens entre razonamiento y respuesta.
+            # El nivel predeterminado puede agotar la reserva antes de emitir JSON.
+            # LOW es compatible con Flash y Pro; MINIMAL no lo es con todos.
+            cfg["thinking_config"] = t.ThinkingConfig(thinking_level="LOW")
         resp = self.client.models.generate_content(
             model=self.model_name, contents=user, config=t.GenerateContentConfig(**cfg)
         )
         usage = getattr(resp, "usage_metadata", None)
         self.last_usage = usage.model_dump(mode="json") if usage is not None else None
+        cands = getattr(resp, "candidates", None) or []
+        reason = getattr(cands[0], "finish_reason", None) if cands else None
+        if reason == "MAX_TOKENS":
+            raise ValueError(
+                f"Respuesta truncada de Gemini (MAX_TOKENS; límite={max_tokens}, "
+                f"razonamiento={getattr(usage, 'thoughts_token_count', None)}, "
+                f"respuesta={getattr(usage, 'candidates_token_count', None)}). "
+                "Aumenta llm_context_budget.output_tokens (--llm-output-reserve) "
+                "y comprueba que entrada y salida caben en window_tokens.")
         text = resp.text
         if not text:
-            cands = getattr(resp, "candidates", None) or []
-            reason = getattr(cands[0], "finish_reason", None) if cands else None
             block = getattr(getattr(resp, "prompt_feedback", None), "block_reason", None)
             raise RuntimeError(f"Respuesta vacía de Gemini (finish_reason={reason}, block_reason={block})")
         return text

@@ -1,0 +1,80 @@
+{
+  "c1": {
+    "architecture": "MobileNetV2",
+    "val_acc": 0.0,
+    "test": {
+      "accuracy": 0.6667,
+      "f1_macro": 0.5556,
+      "classes": [
+        "circulo",
+        "cuadrado",
+        "rayas"
+      ],
+      "confusion_matrix": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          1,
+          0
+        ]
+      ],
+      "per_class": {
+        "circulo": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1
+        },
+        "cuadrado": {
+          "precision": 0.5,
+          "recall": 1.0,
+          "f1": 0.667,
+          "support": 1
+        },
+        "rayas": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0.0,
+          "support": 1
+        }
+      },
+      "latency_ms_per_image": 566.15,
+      "model_size_mb": 9.68,
+      "n_test": 3
+    },
+    "selection": {
+      "candidate_id": "c1",
+      "candidate_version": 1,
+      "study_id": "c1-v1",
+      "trial_id": "270b573733d141d483afdca9579a5ffa",
+      "attempt_id": "57bdc76bc4a8445ab9a81c465b4c9037",
+      "architecture": "MobileNetV2",
+      "params": {
+        "lr": 0.001,
+        "dropout": 0.2,
+        "batch": 16,
+        "augment": true
+      },
+      "val_acc": 0.0,
+      "checkpoint": "D:\\Tesis\\tesis-automl-agents\\runs\\stage11\\agentic\\20261021-204539-ec4a\\models\\270b573733d141d483afdca9579a5ffa_57bdc76bc4a8445ab9a81c465b4c9037.keras",
+      "checkpoint_sha256": "9252954f8b611539f13f2ebce5bad5e8de13666a3cf4ecae4cd29b1afa16c62a",
+      "selection_id": "6648ee9010e28f929ed68c6a86399f5c9f8e6347c352a141933a0f97ee382ec2",
+      "metric_policy": {
+        "name": "accuracy",
+        "direction": "maximize",
+        "threshold": 0.99,
+        "tie_breaker": "smaller_model"
+      },
+      "img_size": 32
+    }
+  }
+}

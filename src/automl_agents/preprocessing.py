@@ -19,5 +19,7 @@ def decode_and_preprocess(contents, img_size, preprocess_module):
     img.set_shape([None, None, 3])
     img = tf.cast(tf.image.resize(img, (img_size, img_size), method="bilinear",
                                   antialias=False), tf.float32)
+    if preprocess_module == "small_cnn":
+        return img / 255.0
     pre = importlib.import_module("keras.applications." + preprocess_module).preprocess_input
     return pre(img)

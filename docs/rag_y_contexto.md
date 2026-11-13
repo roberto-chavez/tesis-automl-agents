@@ -128,6 +128,28 @@ Los límites persistidos no se amplían al reconstruir servicios con otra
 configuración. `--no-llm` y `--mode rules` mantienen la recuperación local y los
 diagnósticos deterministas sin contactar al proveedor.
 
+### Gemini responde, pero el generador cae a reglas
+
+La prueba de conexión con un JSON pequeño no verifica que la propuesta de
+candidatas completa quepa en la reserva de salida. En Gemini, `max_output_tokens`
+incluye tanto razonamiento como respuesta; el modelo puede gastar casi toda la
+reserva pensando y devolver un JSON incompleto. Véase la
+[documentación de razonamiento de Gemini](https://ai.google.dev/gemini-api/docs/thinking).
+
+El cliente usa `thinking_level=LOW` para Gemini 3 y conserva
+`thinking_budget=0` para Gemini 2.5 Flash. Respeta la reserva configurada y no
+hace reintentos ocultos. Si el proveedor termina con `MAX_TOKENS`, rechaza la
+respuesta antes de intentar interpretar JSON e informa el límite y los tokens
+de razonamiento/respuesta. El reporte de criterios muestra la causa del respaldo
+por reglas y su JSON conserva el error estructurado.
+
+Si una propuesta extensa sigue agotando la reserva, configura, por ejemplo,
+`--llm-output-reserve 4000` para una nueva ejecución (o
+`llm_context_budget.output_tokens=4000` en JSON/Python), manteniendo entrada más
+salida dentro de `window_tokens`. Las runs anteriores conservan sus resultados
+y presupuestos persistidos. Un error HTTP 503 indica indisponibilidad del
+proveedor y es distinto de un JSON truncado.
+
 ## Verificación
 
 `tests/test_context_rag.py` verifica límites globales, versiones, filtros,

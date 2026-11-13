@@ -61,6 +61,14 @@ def test_upload_and_assets(client, upload):
     assert client.get("/api/runs/unknown123").status_code == 404
 
 
+def test_tiny_images_receive_enough_epochs_with_same_time_budget(client, tmp_path):
+    dataset = make_demo_dataset(tmp_path / "tiny", per_class=10, size=28)
+    rid = create(client, _zip_bytes(dataset), budget="rapido")
+    cfg = json.loads(api.queue().get(rid)["config"])
+    assert cfg["max_epochs"] == 20
+    assert cfg["max_search_seconds"] == api.PRESETS["rapido"]["max_search_seconds"]
+
+
 @pytest.mark.parametrize("data,field", [({"budget":"x"},"budget"),({"mode":"x"},"mode"),({"tier":"x"},"tier")])
 def test_bad_options(client, upload, data, field):
     response=client.post("/api/runs", files={"file":("d.zip",upload)}, data=data)

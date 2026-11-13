@@ -30,6 +30,8 @@ def configure_tf() -> dict:
 
 
 def preprocess_fn(spec: ArchSpec):
+    if spec.module == "small_cnn":
+        return lambda x: x / 255.0
     return importlib.import_module(f"keras.applications.{spec.module}").preprocess_input
 
 
@@ -53,6 +55,28 @@ def batched(ds, batch: int, n: int, shuffle: bool, seed: int):
 
 def build_model(spec: ArchSpec, n_classes: int, img_size: int, dropout: float, augment: bool,
                 lr: float, pretrained: bool):
+    if spec.name == "SmallCNN":
+        # Train all layers: ImageNet features are unnecessary for tiny images.
+        # Standard Keras layers keep the exported model independently loadable.
+        inp = keras.Input((img_size, img_size, 3))
+        x = inp
+        if augment:
+            x = keras.Sequential([
+                keras.layers.RandomRotation(0.04, fill_mode="constant"),
+                keras.layers.RandomTranslation(0.1, 0.1, fill_mode="constant"),
+                keras.layers.RandomZoom(0.1, fill_mode="constant"),
+            ], name="spatial_augmentation")(x)
+        for filters in (32, 64):
+            x = keras.layers.Conv2D(filters, 3, activation="relu", padding="same")(x)
+            x = keras.layers.MaxPooling2D()(x)
+        x = keras.layers.Flatten()(x)
+        x = keras.layers.Dense(128, activation="relu")(x)
+        x = keras.layers.Dropout(dropout)(x)
+        out = keras.layers.Dense(n_classes, activation="softmax")(x)
+        model = keras.Model(inp, out, name="SmallCNN")
+        model.compile(optimizer=keras.optimizers.Adam(lr), loss="sparse_categorical_crossentropy",
+                      metrics=["accuracy"])
+        return model
     base_cls = getattr(keras.applications, spec.name)
     base = base_cls(include_top=False, weights="imagenet" if pretrained else None,
                     input_shape=(img_size, img_size, 3), pooling="avg")
@@ -60,7 +84,7 @@ def build_model(spec: ArchSpec, n_classes: int, img_size: int, dropout: float, a
     inp = keras.Input((img_size, img_size, 3))
     x = inp
     if augment:
-        x = keras.Sequential([keras.layers.RandomFlip("horizontal"), keras.layers.RandomRotation(0.05),
+        x = keras.Sequential([keras.layers.RandomRotation(0.05),
                               keras.layers.RandomZoom(0.1)])(x)
     x = base(x, training=False) if pretrained else base(x)
     if dropout > 0:
@@ -112,7 +136,10 @@ def train_trial(spec, params, n_classes, img_size, ds_train, ds_val, max_epochs,
     keras.utils.set_random_seed(seed)
     model = build_model(spec, n_classes, img_size, params["dropout"], params["augment"], params["lr"],
                         pretrained)
-    early = keras.callbacks.EarlyStopping(monitor="val_accuracy", mode="max", patience=2,
+    # Small validation sets have coarse, noisy accuracy steps; allow recovery
+    # between plateaus while retaining the same best-checkpoint criterion.
+    patience = 5 if spec.name == "SmallCNN" else 2
+    early = keras.callbacks.EarlyStopping(monitor="val_accuracy", mode="max", patience=patience,
                                           restore_best_weights=True)
     cbs = [early]
     prune = PruneCallback(trial) if trial is not None else None

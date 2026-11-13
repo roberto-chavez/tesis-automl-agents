@@ -1,0 +1,6 @@
+{
+  "run_dir": "D:\\Tesis\\tesis-automl-agents\\runs\\mnist-validation\\20261108-235255-e1aa",
+  "validation_accuracy": 0.9726027397260274,
+  "threshold": 0.95,
+  "passed": true
+}

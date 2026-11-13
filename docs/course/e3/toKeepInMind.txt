@@ -1,0 +1,10 @@
+### 1.2.5 Precisiones operativas de los indicadores
+
+Los doce productos mantienen su relación con las causas del árbol. Para evitar resultados ambiguos, este E3 explicita tres ajustes de medición respecto del E2:
+
+1. **R1.1:** el E2 definía precisión sobre cinco documentos. El archivo de referencia contiene diez consultas y 23 asociaciones relevantes, con dos o tres documentos relevantes por consulta. Incluso una recuperación perfecta tendría precisión media@5 de 23/50 = 0,46, inferior a 0,70. Se fija **k = 3**, cuyo máximo con esas etiquetas es 23/30 = 0,767, y se conserva el umbral 0,70. El cambio responde al instrumento, no a un resultado favorable. Las etiquetas no se modifican para aprobar; la medición léxica actual tampoco alcanza la nueva meta. Se deja este ajuste explícito para revisión académica antes de la evaluación final.
+2. **R2.3:** exigir tres ciclos en toda ejecución contradice el cierre por objetivo alcanzado o presupuesto agotado. Se reserva el mínimo de tres ciclos para escenarios controlados que permitan observar la iteración; en ejecución ordinaria se exige una razón de parada trazable. La configuración predeterminada de dos rondas no demuestra por sí sola este indicador.
+3. **R4.2:** una GPU no utilizada o no detectada se registra como no disponible; no se sustituye su consumo por cero ni se atribuye a una ejecución en CPU una validación del acelerador.
+
+En R1.2 se distinguirán el espacio total del catálogo, el espacio elegible después de aplicar restricciones del usuario y el espacio finalmente propuesto. La reducción que proviene de prohibir arquitecturas no se atribuirá íntegramente a RAG. En R4.1 y R4.3 se usarán líneas base ejecutadas, no extrapolaciones de épocas. El Anexo C define denominadores, conjuntos de datos, repeticiones e instrumentos; el Anexo A asigna las tareas para obtener estas evidencias.
+

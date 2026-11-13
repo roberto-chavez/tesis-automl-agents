@@ -70,14 +70,31 @@ def _src_for(arch: str, docs: list[Doc]) -> list[str]:
     return ids
 
 
+def _small_image_candidate(profile, docs, cfg, candidate_id):
+    return Candidate(candidate_id, "SmallCNN",
+                     "Imágenes de baja resolución: CNN entrenable con información espacial, "
+                     "sin pesos ImageNet ni reflejos que alteren dígitos.",
+                     _src_for("SmallCNN", docs), [1e-3, 3e-3], [0.2, 0.4], [32],
+                     [True, False], _img_size(CATALOG["SmallCNN"], cfg))
+
+
+def _prefer_small_cnn(profile, allowed):
+    return "SmallCNN" in allowed and max(profile.median_size) <= 32
+
+
 def propose_rules(profile, docs, cfg) -> tuple[list[Candidate], list[dict]]:
     ok, discarded = _allowed(cfg)
     bucket = profile.size_bucket(1 - cfg.val_fraction - cfg.test_fraction)
     ranked = sorted(ok.values(), key=lambda s: -_score(s, bucket))
+    if _prefer_small_cnn(profile, ok):
+        ranked.sort(key=lambda s: s.name != "SmallCNN")
     chosen, rest = ranked[: cfg.max_candidates], ranked[cfg.max_candidates:]
     space = default_space(profile, cfg)
     cands = []
     for i, s in enumerate(chosen, 1):
+        if s.name == "SmallCNN":
+            cands.append(_small_image_candidate(profile, docs, cfg, f"c{i}"))
+            continue
         why = (f"~{s.params_m}M parámetros, nivel de recursos '{s.tier}'; dataset {bucket} "
                f"({profile.n_images} imágenes, {profile.n_classes} clases) → prioridad {_score(s, bucket):.2f}.")
         cands.append(Candidate(f"c{i}", s.name, why, _src_for(s.name, docs), img_size=_img_size(s, cfg), **space))
@@ -127,6 +144,12 @@ def propose_llm(profile, docs, cfg, llm: LLM) -> tuple[list[Candidate], list[dic
             break
     if not cands:
         raise ValueError("El LLM no propuso candidatas válidas")
+    # Reserve a suitable baseline even if the LLM only proposes ImageNet models.
+    if _prefer_small_cnn(profile, ok):
+        others = [c for c in cands if c.architecture != "SmallCNN"]
+        cands = [_small_image_candidate(profile, docs, cfg, "c1")] + others[:cfg.max_candidates - 1]
+        for i, c in enumerate(cands, 1):
+            c.id = f"c{i}"
     picked = {c.architecture for c in cands}
     reasons = {d.get("arquitectura"): d.get("razon") for d in data.get("descartadas", [])}
     for n in ok:

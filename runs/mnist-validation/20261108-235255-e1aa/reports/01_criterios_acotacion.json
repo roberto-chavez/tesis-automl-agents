@@ -1,0 +1,290 @@
+{
+  "mode": "reglas",
+  "note": "",
+  "error": null,
+  "dataset": {
+    "n_images": 708,
+    "n_classes": 10,
+    "classes": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9"
+    ],
+    "counts": {
+      "0": 61,
+      "1": 90,
+      "2": 82,
+      "3": 75,
+      "4": 78,
+      "5": 61,
+      "6": 61,
+      "7": 71,
+      "8": 63,
+      "9": 66
+    },
+    "imbalance_ratio": 1.48,
+    "median_size": [
+      28,
+      28
+    ],
+    "min_side": 28,
+    "warnings": [
+      "Hay imágenes menores de 32 px por lado; podrían perder información al reescalarse."
+    ],
+    "scope": "train"
+  },
+  "criteria": {
+    "dataset_bucket": "small",
+    "resource_tier": "low",
+    "pretrained": false,
+    "retrieved_docs": [
+      {
+        "id": "guide_small_dataset",
+        "title": "Datasets pequeños: pocas imágenes por clase",
+        "kind": "guide",
+        "score": 0.32559406757354736,
+        "source": null,
+        "date": null,
+        "scope": null,
+        "version": "96f1d50932606d6cd67a09b67288f94cdf6d4f48e2ae38ab47eb6188f7a857fb"
+      },
+      {
+        "id": "guide_transfer_learning",
+        "title": "Transferencia de aprendizaje con pesos ImageNet",
+        "kind": "guide",
+        "score": 0.2671576738357544,
+        "source": null,
+        "date": null,
+        "scope": null,
+        "version": "ec9ff63e0a6c45969e071340f610c773b88840cdad060108497a21c23d303599"
+      },
+      {
+        "id": "arch_efficientnetb0",
+        "title": "EfficientNetB0 (Keras Applications)",
+        "kind": "arch",
+        "score": 0.26740455627441406,
+        "source": null,
+        "date": null,
+        "scope": null,
+        "version": "4b78e69e3b052cb1318a1cdd2fd6687ee87293abf985b8da4478d63297b52d9e"
+      },
+      {
+        "id": "guide_learning_rate",
+        "title": "Rangos de tasa de aprendizaje",
+        "kind": "guide",
+        "score": 0.4059237837791443,
+        "source": null,
+        "date": null,
+        "scope": null,
+        "version": "0779299ac0ee7abb193f4154e39d9d8f9f694ccbb02c027576607883c4ee3348"
+      },
+      {
+        "id": "guide_dropout_regularization",
+        "title": "Dropout y regularización",
+        "kind": "guide",
+        "score": 0.15439647436141968,
+        "source": null,
+        "date": null,
+        "scope": null,
+        "version": "b10e1580953a29c3cdb60ee6ce330389cef981e39fd562b9e0b6ff9da2efbe46"
+      },
+      {
+        "id": "guide_batch_size",
+        "title": "Tamaño de lote",
+        "kind": "guide",
+        "score": 0.45849812030792236,
+        "source": null,
+        "date": null,
+        "scope": null,
+        "version": "68fba4e7f344fa7255c90c831b8a5b3f27faebabc5c5491aa0e3de6883b219a3"
+      },
+      {
+        "id": "arch_densenet121",
+        "title": "DenseNet121 (Keras Applications)",
+        "kind": "arch",
+        "score": 0.2744894027709961,
+        "source": null,
+        "date": null,
+        "scope": null,
+        "version": "c46a807bbd56402d549ab0ed90a65b1ab7b923512a5c52c0e116726694a2da88"
+      },
+      {
+        "id": "arch_xception",
+        "title": "Xception (Keras Applications)",
+        "kind": "arch",
+        "score": 0.20284271240234375,
+        "source": null,
+        "date": null,
+        "scope": null,
+        "version": "aa33f702f4725e4e3c2a5a1a83058353a8bbed15a46d2f614d5183b0e85902ad"
+      },
+      {
+        "id": "guide_limited_resources",
+        "title": "Entrenamiento con recursos computacionales limitados",
+        "kind": "guide",
+        "score": 0.3739689588546753,
+        "source": null,
+        "date": null,
+        "scope": null,
+        "version": "aeed66a4e3893bfa187dc6dd388416bbceb55ff3d1b37936b56349c90ecea73e"
+      },
+      {
+        "id": "arch_vgg16",
+        "title": "VGG16 (Keras Applications)",
+        "kind": "arch",
+        "score": 0.24106872081756592,
+        "source": null,
+        "date": null,
+        "scope": null,
+        "version": "50835b9b95dfe5b363ee1a6c5b748ea6cc830d89cb15618cd3329ea557cfe0e9"
+      },
+      {
+        "id": "arch_efficientnetv2b0",
+        "title": "EfficientNetV2B0 (Keras Applications)",
+        "kind": "arch",
+        "score": 0.22375178337097168,
+        "source": null,
+        "date": null,
+        "scope": null,
+        "version": "c62e318e31f2eece9a28695f449f77eef9b36d61eb61dcaeb3d215a3b2d16fe4"
+      },
+      {
+        "id": "arch_mobilenetv2",
+        "title": "MobileNetV2 (Keras Applications)",
+        "kind": "arch",
+        "score": 0.23085874319076538,
+        "source": null,
+        "date": null,
+        "scope": null,
+        "version": "1a6b930255af23cd3a8e17a6b2d7c3402d186fbc3088d4da74be6fe64fe4e548"
+      },
+      {
+        "id": "guide_early_stopping",
+        "title": "Descarte temprano y parada anticipada",
+        "kind": "guide",
+        "score": 0.18234241008758545,
+        "source": null,
+        "date": null,
+        "scope": null,
+        "version": "89fea3c3840c5b371265b7ed2d43695075a6603883399d343f3058a6a541b16c"
+      },
+      {
+        "id": "arch_convnexttiny",
+        "title": "ConvNeXtTiny (Keras Applications)",
+        "kind": "arch",
+        "score": 0.2135295867919922,
+        "source": null,
+        "date": null,
+        "scope": null,
+        "version": "36f41f7a9f49f900c5dfaf2a4a6bee5550d6bdaa15a141273abeb305ab1a4013"
+      },
+      {
+        "id": "guide_metrics",
+        "title": "Métricas de evaluación en clasificación de imágenes",
+        "kind": "guide",
+        "score": 0.22295081615447998,
+        "source": null,
+        "date": null,
+        "scope": null,
+        "version": "bde694a2245ab6e5e5485d458a36cb740aca7e87069f3c9af854c45a33cb0e53"
+      },
+      {
+        "id": "guide_class_imbalance",
+        "title": "Desbalance de clases",
+        "kind": "guide",
+        "score": 0.09245789051055908,
+        "source": null,
+        "date": null,
+        "scope": null,
+        "version": "2a12211698970cefe1f9ce98d147c366210250e525ae2cb8d021a3914ae85b1d"
+      }
+    ]
+  },
+  "space": {
+    "total_configs": 1080,
+    "candidate_configs": 8,
+    "reduction_pct": 99.3
+  },
+  "candidates": [
+    {
+      "id": "c1",
+      "architecture": "SmallCNN",
+      "rationale": "Imágenes de baja resolución: CNN entrenable con información espacial, sin pesos ImageNet ni reflejos que alteren dígitos.",
+      "sources": [
+        "guide_small_dataset",
+        "guide_transfer_learning",
+        "guide_learning_rate"
+      ],
+      "lr_values": [
+        0.001,
+        0.003
+      ],
+      "dropout_values": [
+        0.2,
+        0.4
+      ],
+      "batch_sizes": [
+        32
+      ],
+      "augment_values": [
+        true,
+        false
+      ],
+      "img_size": 28,
+      "version": 1
+    }
+  ],
+  "discarded": [
+    {
+      "architecture": "MobileNetV2",
+      "reason": "Excluida por el usuario (lista de arquitecturas permitidas)."
+    },
+    {
+      "architecture": "MobileNetV3Small",
+      "reason": "Excluida por el usuario (lista de arquitecturas permitidas)."
+    },
+    {
+      "architecture": "EfficientNetB0",
+      "reason": "Excluida por el usuario (lista de arquitecturas permitidas)."
+    },
+    {
+      "architecture": "EfficientNetV2B0",
+      "reason": "Excluida por el usuario (lista de arquitecturas permitidas)."
+    },
+    {
+      "architecture": "NASNetMobile",
+      "reason": "Excluida por el usuario (lista de arquitecturas permitidas)."
+    },
+    {
+      "architecture": "DenseNet121",
+      "reason": "Excluida por el usuario (lista de arquitecturas permitidas)."
+    },
+    {
+      "architecture": "ResNet50V2",
+      "reason": "Excluida por el usuario (lista de arquitecturas permitidas)."
+    },
+    {
+      "architecture": "Xception",
+      "reason": "Excluida por el usuario (lista de arquitecturas permitidas)."
+    },
+    {
+      "architecture": "InceptionV3",
+      "reason": "Excluida por el usuario (lista de arquitecturas permitidas)."
+    },
+    {
+      "architecture": "ConvNeXtTiny",
+      "reason": "Excluida por el usuario (lista de arquitecturas permitidas)."
+    },
+    {
+      "architecture": "VGG16",
+      "reason": "Excluida por el usuario (lista de arquitecturas permitidas)."
+    }
+  ]
+}

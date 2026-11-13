@@ -1,0 +1,10 @@
+Inspect result written to file: D:/Tesis/tesis-automl-agents/slides/.avance2-build/candidate.pptx.inspect.ndjson
+file:///C:/Users/rober/.codex/plugins/cache/openai-primary-runtime/presentations/26.1024.11018/skills/presentations/container_tools/artifact_tool_utils.mjs:999
+    throw new Error("Private validation receipt must stay inside the task workspace and outside final output");
+          ^
+
+Error: Private validation receipt must stay inside the task workspace and outside final output
+    at finalizePresentation (file:///C:/Users/rober/.codex/plugins/cache/openai-primary-runtime/presentations/26.1024.11018/skills/presentations/container_tools/artifact_tool_utils.mjs:999:11)
+    at async file:///D:/Tesis/tesis-automl-agents/slides/.avance2-build/build.mjs:122:11
+
+Node.js v24.22.1

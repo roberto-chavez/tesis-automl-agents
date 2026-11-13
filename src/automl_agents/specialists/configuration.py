@@ -22,7 +22,7 @@ class ConfigurationSpecialist:
                 return ConfigurationResult(candidates=cands, discarded=discarded, mode="llm").validate_context(context)
             except Exception as exc:
                 error = DomainError(code="candidate_proposal_failed", message=str(exc) or type(exc).__name__, recoverable=True)
-                note = f"Fallo del LLM ({type(exc).__name__}); se usó el generador por reglas."
+                note = f"Fallo del LLM ({type(exc).__name__}: {str(exc)[:300]}); se usó el generador por reglas."
         cands, discarded = candidates.propose_rules(profile, docs, cfg)
         return ConfigurationResult(candidates=cands, discarded=discarded, mode=mode,
                                    error=error, note=note).validate_context(context)

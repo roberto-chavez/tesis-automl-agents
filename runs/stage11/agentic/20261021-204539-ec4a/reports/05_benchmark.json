@@ -1,0 +1,40 @@
+{
+  "trials_total": 1,
+  "trials_pruned": 0,
+  "trial_status_counts": {
+    "completed": 1
+  },
+  "pruned_pct": 0.0,
+  "epochs_used": 1,
+  "seconds_measured": 15.2,
+  "stage_seconds_measured": {
+    "perfil": 0.17207969999981287,
+    "rag": 0.9539356000004773,
+    "candidatas": 45.78581049999957,
+    "entrenar": 43.651580300000205,
+    "controlar": 0.00014229999942472205,
+    "evaluar": 4.1099005999994915,
+    "benchmark": 0.023656000000300992,
+    "reportar": 0.49740079999992304,
+    "empaquetar": 15.844442600000548
+  },
+  "baselines_are_estimates": true,
+  "seconds_per_epoch_avg": 15.25,
+  "epochs_without_pruning_same_trials": 1,
+  "epochs_eligible_for_early_stopping": 1,
+  "trials_with_early_stopping_baseline": 1,
+  "saving_from_early_stopping_pct": 0.0,
+  "baseline_exhaustive_full_space": {
+    "configs": 990,
+    "epochs": 990,
+    "est_hours": 4.19,
+    "reduction_epochs_pct": 99.9
+  },
+  "baseline_exhaustive_candidate_space": {
+    "configs": 24,
+    "epochs": 24,
+    "est_hours": 0.1,
+    "reduction_epochs_pct": 95.8
+  },
+  "note": "Líneas base estimadas: configuraciones x épocas máximas x costo medio por época medido. El costo real depende de las arquitecturas y recursos; no se midió una búsqueda exhaustiva."
+}

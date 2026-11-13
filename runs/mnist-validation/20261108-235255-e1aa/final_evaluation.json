@@ -1,0 +1,230 @@
+{
+  "winner": {
+    "candidate_id": "c1",
+    "candidate_version": 1,
+    "study_id": "c1-v1",
+    "trial_id": "d4534790c3974c4b9270ab919dbe8876",
+    "attempt_id": "8423a0feb53f4f2c8ea7b07e362d765a",
+    "architecture": "SmallCNN",
+    "params": {
+      "lr": 0.003,
+      "dropout": 0.2,
+      "batch": 32,
+      "augment": true
+    },
+    "val_acc": 0.9726027397260274,
+    "checkpoint": "D:\\Tesis\\tesis-automl-agents\\runs\\mnist-validation\\20261108-235255-e1aa\\models\\d4534790c3974c4b9270ab919dbe8876_8423a0feb53f4f2c8ea7b07e362d765a.keras",
+    "checkpoint_sha256": "99f106e7181c0a367ffda34bb6a866fab32553871109220dea72e29fe419b9fb",
+    "selection_id": "b34b1aa971abdcea87302e308c592debb1425022db70f263d72ba48ff7b3c3e9",
+    "metric_policy": {
+      "name": "accuracy",
+      "direction": "maximize",
+      "threshold": 0.95,
+      "tie_breaker": "smaller_model"
+    },
+    "img_size": 28
+  },
+  "metrics": {
+    "accuracy": 0.9521,
+    "f1_macro": 0.9534,
+    "classes": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9"
+    ],
+    "confusion_matrix": [
+      [
+        12,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        17,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        17,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        16,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        14,
+        0,
+        0,
+        0,
+        0,
+        2
+      ],
+      [
+        0,
+        0,
+        0,
+        1,
+        0,
+        12,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        13,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        12,
+        0,
+        1
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        12,
+        1
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        14
+      ]
+    ],
+    "per_class": {
+      "0": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 12
+      },
+      "1": {
+        "precision": 1.0,
+        "recall": 0.944,
+        "f1": 0.971,
+        "support": 18
+      },
+      "2": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 17
+      },
+      "3": {
+        "precision": 0.889,
+        "recall": 1.0,
+        "f1": 0.941,
+        "support": 16
+      },
+      "4": {
+        "precision": 0.933,
+        "recall": 0.875,
+        "f1": 0.903,
+        "support": 16
+      },
+      "5": {
+        "precision": 1.0,
+        "recall": 0.923,
+        "f1": 0.96,
+        "support": 13
+      },
+      "6": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 13
+      },
+      "7": {
+        "precision": 1.0,
+        "recall": 0.857,
+        "f1": 0.923,
+        "support": 14
+      },
+      "8": {
+        "precision": 1.0,
+        "recall": 0.923,
+        "f1": 0.96,
+        "support": 13
+      },
+      "9": {
+        "precision": 0.778,
+        "recall": 1.0,
+        "f1": 0.875,
+        "support": 14
+      }
+    },
+    "latency_ms_per_image": 2.04,
+    "model_size_mb": 5.12,
+    "n_test": 146
+  }
+}

@@ -107,6 +107,10 @@ def create_run(file: UploadFile = File(...), use_case: str = Form(""), tier: str
         profile, _, _ = prepare_dataset(rd / "dataset", rd, cfg.val_fraction, cfg.test_fraction, cfg.seed)
         # prepare_dataset devuelve el perfil de entrenamiento, con raíz absoluta.
         cfg.dataset_dir = str(Path(profile.root).resolve())
+        # The web presets constrain wall time, not an explicit epoch request.
+        # Tiny-image CNNs need more cheap epochs than a frozen ImageNet head.
+        if max(profile.median_size) <= 32:
+            cfg.max_epochs = max(cfg.max_epochs, 20)
         from .events import write_json
         write_json(rd / "upload.json", {"filename": file.filename, "profile": profile.to_dict(),
                                        "budget": budget, "use_case": cfg.use_case})
